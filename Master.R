@@ -3,7 +3,7 @@ require(rgl)
 require(bio3d)
 require(seqinr)
 
-x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb")
+x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb",multi=TRUE)
 
 
 ###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 

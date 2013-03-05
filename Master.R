@@ -6,6 +6,42 @@ require(seqinr)
 x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb")
 
 
+###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
+# Input chain number
+chain.num<-24
+
+# Where required correct chain names 
+
+if (length(unique(x$atom[,5])) < chain.num ) 
+  
+  { 
+    new.chain.store<-numeric(0)
+    chain.lib<-toupper(paste(letters[1:chain.num]))
+
+# Calculate atoms per chain
+
+atoms.per.chain<-length(x$atom[,5])/chain.num
+i<-1
+while (i<=chain.num)
+
+{
+new.chain<-rep(chain.lib[i],atoms.per.chain)
+new.chain.store<-c(new.chain.store,new.chain)
+
+i<-i+1
+
+}
+x$atom[,5]= new.chain.store
+}
+
+
+
+
+
+
+
+
+
 # Assigns each amino acid its specific chain.
 reference.ids<-numeric(0)
 i<-1

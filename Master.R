@@ -10,8 +10,9 @@ x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb1",multi=TRUE)
 # Input chain number
 chain.num<-24
 
-# Where required correct chain names 
-
+# Where required find and store correct chain names 
+newchains<-function(x,chain.chain.num,chain.lib,atoms.per.chain,new.chain,new.chain.store)
+{
 if (length(unique(x$atom[,5])) < chain.num ) 
   
   { 
@@ -22,6 +23,8 @@ if (length(unique(x$atom[,5])) < chain.num )
 
 atoms.per.chain<-length(x$atom[,5])/chain.num
 i<-1
+
+# Replace old chian names with new ones
 while (i<=chain.num)
 
 {
@@ -31,29 +34,25 @@ new.chain.store<-c(new.chain.store,new.chain)
 i<-i+1
 
 }
-x$atom[,5]= new.chain.store
 }
+}
+newchains(x,chain.chain.num,chain.lib,atoms.per.chain,new.chain,new.chain.store)
+x$atom[,5]= new.chain.store
 
-
-
-
-
-
-
-
+# Output of changechange without duplicates
+chains<-unique(new.chain.store)
 
 # Assigns each amino acid its specific chain.
-reference.ids<-numeric(0)
 i<-1
-while (i<length(x$atom[,6])+1)
+ref.id.assign<-function(i,x,reference.ids)
 {
-  reference.ids<-c(reference.ids,paste(c(x$atom[,5][i],"-",x$atom[,6][i]),collapse=""))
-  i<-i+1
+  while (i<=length(x$atom[,6]))
+  {
+    reference.ids=c(paste(c(x$atom[,5][i],"-",x$atom[,6][i]),collapse=""))
+    i<-i+1
+  }
 }
-
-#List the unique chains in the structure
-chains<-unique(x$atom[,5])
-
+reference.ids<-ref.id.assign(x,i,reference.ids)
 
 # one contains only the data from the first chain and none of the others.
 one<-chains[1]

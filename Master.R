@@ -3,7 +3,7 @@ require(rgl)
 require(bio3d)
 require(seqinr)
 
-x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb",multi=TRUE)
+x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb1",multi=TRUE)
 
 
 ###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
@@ -60,85 +60,99 @@ one<-chains[1]
 one<-grep(x=((x$atom[,5])==one),pattern=TRUE)
 
 
-# Each contains all the atoms from hydrophobic amino acids (not in 1st chain)
+# Selects all atoms from hydorphobic amino acids which are not in the first chain
 hydrophobes.assign<-function(val,ile,leu,met,phe,trp,cys,ala,one,x)
 {
-val<-grep(x=((x$atom[,4][-one])=="VAL"),pattern=TRUE)
-ile<-grep(x=((x$atom[,4][-one])=="ILE"),pattern=TRUE)
-leu<-grep(x=((x$atom[,4][-one])=="LEU"),pattern=TRUE)
-met<-grep(x=((x$atom[,4][-one])=="MET"),pattern=TRUE)
-phe<-grep(x=((x$atom[,4][-one])=="PHE"),pattern=TRUE)
-trp<-grep(x=((x$atom[,4][-one])=="TRP"),pattern=TRUE)
-cys<-grep(x=((x$atom[,4][-one])=="CYS"),pattern=TRUE)
-ala<-grep(x=((x$atom[,4][-one])=="ALA"),pattern=TRUE)
+  val<-grep(x=((x$atom[,4][-one])=="VAL"),pattern=TRUE)
+  ile<-grep(x=((x$atom[,4][-one])=="ILE"),pattern=TRUE)
+  leu<-grep(x=((x$atom[,4][-one])=="LEU"),pattern=TRUE)
+  met<-grep(x=((x$atom[,4][-one])=="MET"),pattern=TRUE)
+  phe<-grep(x=((x$atom[,4][-one])=="PHE"),pattern=TRUE)
+  trp<-grep(x=((x$atom[,4][-one])=="TRP"),pattern=TRUE)
+  cys<-grep(x=((x$atom[,4][-one])=="CYS"),pattern=TRUE)
+  ala<-grep(x=((x$atom[,4][-one])=="ALA"),pattern=TRUE)
 
-
-#All hydrophobic amino acids are grouped together
-
-sort(c(ile,leu,met,phe,trp,cys,val,ala))
+  sort(c(ile,leu,met,phe,trp,cys,val,ala))
 }
-
 hydrophobes<-hydrophobes.assign(val,ile,leu,met,phe,trp,cys,ala,one,x)
 
+#Selects only atoms of the R groups of hydrophobic amino acids
+hydrophobesr.assign<-function(Hcb,Hcg,Hsd,Hce,Hcg1,Hcg2,Hcd1,Hcd2,Hce1,Hce2,Hcz,Hne1,Hce3,Hcz2,Hcz3,Hch2,Hsg,hydrophobes,x)
+{
+  Hcb<-na.omit(subset(hydrophobes,x$atom[,2]=="CB"))
+  Hcg<-na.omit(subset(hydrophobes,x$atom[,2]=="CG"))
+  Hsd<-na.omit(subset(hydrophobes,x$atom[,2]=="SD"))
+  Hce<-na.omit(subset(hydrophobes,x$atom[,2]=="CE"))
+  Hcg1<-na.omit(subset(hydrophobes,x$atom[,2]=="CG1"))
+  Hcg2<-na.omit(subset(hydrophobes,x$atom[,2]=="CG2"))
+  Hcd1<-na.omit(subset(hydrophobes,x$atom[,2]=="CD1"))
+  Hcd2<-na.omit(subset(hydrophobes,x$atom[,2]=="CD2"))
+  Hce1<-na.omit(subset(hydrophobes,x$atom[,2]=="CE1"))
+  Hce2<-na.omit(subset(hydrophobes,x$atom[,2]=="CE2"))
+  Hcz<-na.omit(subset(hydrophobes,x$atom[,2]=="CZ"))
+  Hne1<-na.omit(subset(hydrophobes,x$atom[,2]=="NE1"))
+  Hce3<-na.omit(subset(hydrophobes,x$atom[,2]=="CE3"))
+  Hcz2<-na.omit(subset(hydrophobes,x$atom[,2]=="CZ2"))
+  Hcz3<-na.omit(subset(hydrophobes,x$atom[,2]=="CZ3"))
+  Hch2<-na.omit(subset(hydrophobes,x$atom[,2]=="CH2"))   
+  Hsg<-na.omit(subset(hydrophobes,x$atom[,2]=="SG"))                          
+  sort(c(Hcb,Hcg,Hsd,Hce,Hcg1,Hcg2,Hcd1,Hcd2,Hce1,Hce2,Hcz,Hne1,Hce3,Hcz2,Hcz3,Hch2,Hsg))
+}
 
-Hcb<-na.omit(subset(hydrophobes,x$atom[,2]=="CB"))
-Hcg<-na.omit(subset(hydrophobes,x$atom[,2]=="CG"))
-Hsd<-na.omit(subset(hydrophobes,x$atom[,2]=="SD"))
-Hce<-na.omit(subset(hydrophobes,x$atom[,2]=="CE"))
-Hcg1<-na.omit(subset(hydrophobes,x$atom[,2]=="CG1"))
-Hcg2<-na.omit(subset(hydrophobes,x$atom[,2]=="CG2"))
-Hcd1<-na.omit(subset(hydrophobes,x$atom[,2]=="CD1"))
-Hcd2<-na.omit(subset(hydrophobes,x$atom[,2]=="CD2"))
-Hce1<-na.omit(subset(hydrophobes,x$atom[,2]=="CE1"))
-Hce2<-na.omit(subset(hydrophobes,x$atom[,2]=="CE2"))
-Hcz<-na.omit(subset(hydrophobes,x$atom[,2]=="CZ"))
-Hne1<-na.omit(subset(hydrophobes,x$atom[,2]=="NE1"))
-Hce3<-na.omit(subset(hydrophobes,x$atom[,2]=="CE3"))
-Hcz2<-na.omit(subset(hydrophobes,x$atom[,2]=="CZ2"))
-Hcz3<-na.omit(subset(hydrophobes,x$atom[,2]=="CZ3"))
-Hch2<-na.omit(subset(hydrophobes,x$atom[,2]=="CH2"))   
-Hsg<-na.omit(subset(hydrophobes,x$atom[,2]=="SG"))                      
-          
-           
-hydrophobesr<-sort(c(Hcb,Hcg,Hsd,Hce,Hcg1,Hcg2,Hcd1,Hcd2,Hce1,Hce2,Hcz,Hne1,Hce3,Hcz2,Hcz3,Hch2,Hsg))
+hydrophobesr<-hydrophobesr.assign(Hcb,Hcg,Hsd,Hce,Hcg1,Hcg2,Hcd1,Hcd2,Hce1,Hce2,Hcz,Hne1,
+Hce3,Hcz2,Hcz3,Hch2,Hsg,hydrophobes,x)
 
+#Groups and sorts all hydrophobic amino acids from the first chain
+hydrophobes1.assign<-function(val1,ile1,leu1,met1,phe1,trp1,cys1,ala1,one,x)
+{
+  val1<-grep(x=((x$atom[,4][one])=="VAL"),pattern=TRUE)
+  ile1<-grep(x=((x$atom[,4][one])=="ILE"),pattern=TRUE)
+  leu1<-grep(x=((x$atom[,4][one])=="LEU"),pattern=TRUE)
+  met1<-grep(x=((x$atom[,4][one])=="MET"),pattern=TRUE)
+  phe1<-grep(x=((x$atom[,4][one])=="PHE"),pattern=TRUE)
+  trp1<-grep(x=((x$atom[,4][one])=="TRP"),pattern=TRUE)
+  cys1<-grep(x=((x$atom[,4][one])=="CYS"),pattern=TRUE)
+  ala1<-grep(x=((x$atom[,4][one])=="ala"),pattern=TRUE)
+  #All hydrophobic amino acids from the first chain are sorted
+  sort(c(ile1,leu1,met1,phe1,trp1,cys1,val1,ala1))
+}
+hydrophobes1<-hydrophobes1.assign(val1,ile1,leu1,met1,phe1,trp1,cys1,ala1,one,x)
 
+hydrophobesr1.assign<-function(Hcb.1,Hcg.1,Hsd.1,Hce.1,Hcg1.1,Hcg2.1,Hcd1.1,Hcd2.1,Hce1.1,Hce2.1,
+Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1,Hsg.1,hydrophobes1,x)
+{
+  Hcb.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CB"))
+  Hcg.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CG"))
+  Hsd.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="SD"))
+  Hce.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE"))
+  Hcg1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CG1"))
+  Hcg2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CG2"))
+  Hcd1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CD1"))
+  Hcd2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CD2"))
+  Hce1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE1"))
+  Hce2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE2"))
+  Hcz.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CZ"))
+  Hne1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="NE1"))
+  Hce3.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE3"))
+  Hcz2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CZ2"))
+  Hcz3.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CZ3"))
+  Hch2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CH2"))                    
+  Hsg.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="SG"))                                  
+  sort(c(Hcb.1,Hcg.1,Hsd.1,Hce.1,Hcg1.1,Hcg2.1,Hcd1.1,Hcd2.1,Hce1.1,Hce2.1,Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1))
+}
+hydrophobesr1<-hydrophobesr1.assign(Hcb.1,Hcg.1,Hsd.1,Hce.1,Hcg1.1,Hcg2.1,Hcd1.1,Hcd2.1,Hce1.1,Hce2.1,
+Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1,Hsg.1,hydrophobes1,x)
 
-#Each contains hydrophobic amino acids from the first chain
-val1<-grep(x=((x$atom[,4][one])=="VAL"),pattern=TRUE)
-ile1<-grep(x=((x$atom[,4][one])=="ILE"),pattern=TRUE)
-leu1<-grep(x=((x$atom[,4][one])=="LEU"),pattern=TRUE)
-met1<-grep(x=((x$atom[,4][one])=="MET"),pattern=TRUE)
-phe1<-grep(x=((x$atom[,4][one])=="PHE"),pattern=TRUE)
-trp1<-grep(x=((x$atom[,4][one])=="TRP"),pattern=TRUE)
-cys1<-grep(x=((x$atom[,4][one])=="CYS"),pattern=TRUE)
-ala1<-grep(x=((x$atom[,4][one])=="ala"),pattern=TRUE)
+#Assigns all xyz data to relevant atoms
+# Contains positional data for all atoms
+x.val<-as.numeric(x$atom[,8])
+y.val<-as.numeric(x$atom[,9])
+z.val<-as.numeric(x$atom[,10])
 
-
-#All hydrophobic amino acids from the first chain are grouped together
-hydrophobes1<-sort(c(ile1,leu1,met1,phe1,trp1,cys1,val1,ala1))
-
-Hcb.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CB"))
-Hcg.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CG"))
-Hsd.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="SD"))
-Hce.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE"))
-Hcg1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CG1"))
-Hcg2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CG2"))
-Hcd1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CD1"))
-Hcd2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CD2"))
-Hce1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE1"))
-Hce2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE2"))
-Hcz.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CZ"))
-Hne1.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="NE1"))
-Hce3.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CE3"))
-Hcz2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CZ2"))
-Hcz3.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CZ3"))
-Hch2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CH2"))                    
-Hsg.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="SG"))                      
-                
-hydrophobesr1<-sort(c(Hcb.1,Hcg.1,Hsd.1,Hce.1,Hcg1.1,Hcg2.1,Hcd1.1,Hcd2.1,Hce1.1,Hce2.1,Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1))
-
-#Assigning positional data of first chain to x,y and z axes so that atoms can be plotted in space 
+# Contains positional data for all hydrophobes 
+x.hydro<-as.numeric(x$atom[,8][-one][hydrophobesr])
+y.hydro<-as.numeric(x$atom[,9][-one][hydrophobesr])
+z.hydro<-as.numeric(x$atom[,10][-one][hydrophobesr])
 
 # Contains positional data for hydrophobias from first chain
 One.xhydro<-as.numeric(x$atom[,8][hydrophobesr1])
@@ -147,26 +161,16 @@ One.zhydro<-as.numeric(x$atom[,10][hydrophobesr1])
 
 # Plots the first chain 
 plot3d(x=One.xhydro,y=One.yhydro,z=One.zhydro,box=0,axes=0,col=7,type="s",radius=0.5)
-
-
-x.val<-as.numeric(x$atom[,8])
-y.val<-as.numeric(x$atom[,9])
-z.val<-as.numeric(x$atom[,10])
-
-
-# These contain positional data for all hydrophobes 
-
-x.hydro<-as.numeric(x$atom[,8][-one][hydrophobesr])
-y.hydro<-as.numeric(x$atom[,9][-one][hydrophobesr])
-z.hydro<-as.numeric(x$atom[,10][-one][hydrophobesr])
-
 # Run a loop to find the proximity of other atoms in structure 
 
 # Future proximity residue will be stored in these
 residue.match.store<-numeric(0)
 residue.match.store2<-numeric(0)
 
+
 j<-1
+
+
 while (j<=length(One.xhydro))
   
 {

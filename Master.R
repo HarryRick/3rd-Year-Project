@@ -61,7 +61,8 @@ one<-grep(x=((x$atom[,5])==one),pattern=TRUE)
 
 
 # Each contains all the atoms from hydrophobic amino acids (not in 1st chain)
-
+hydrophobes.assign<-function(val,ile,leu,met,phe,trp,cys,ala,one,x)
+{
 val<-grep(x=((x$atom[,4][-one])=="VAL"),pattern=TRUE)
 ile<-grep(x=((x$atom[,4][-one])=="ILE"),pattern=TRUE)
 leu<-grep(x=((x$atom[,4][-one])=="LEU"),pattern=TRUE)
@@ -74,7 +75,11 @@ ala<-grep(x=((x$atom[,4][-one])=="ALA"),pattern=TRUE)
 
 #All hydrophobic amino acids are grouped together
 
-hydrophobes<-sort(c(ile,leu,met,phe,trp,cys,val,ala))
+sort(c(ile,leu,met,phe,trp,cys,val,ala))
+}
+
+hydrophobes<-hydrophobes.assign(val,ile,leu,met,phe,trp,cys,ala,one,x)
+
 
 Hcb<-na.omit(subset(hydrophobes,x$atom[,2]=="CB"))
 Hcg<-na.omit(subset(hydrophobes,x$atom[,2]=="CG"))

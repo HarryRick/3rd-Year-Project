@@ -1,9 +1,19 @@
 # Load R extensions
+require(BoSSA)
 require(rgl)
 require(bio3d)
 require(seqinr)
 
-x<-read.pdb("http://www.rcsb.org/pdb/files/2fg8.pdb1",multi=TRUE)
+# Add BLAST search of pdb database and use top result from this as input to rest of script 
+
+seq<-as.character("MSSQIRQNYSTDVEAAVNSLVNLYLQASYTYLSLGFYFDRDDVALEGVSHFFRELAEEKREGYERLLKMQNQRGGRALFQ
+DIKKPAEDEWGKTPDAMKAAMALEKKLNQALLDLHALGSARTDPHLCDFLETHFLDEEVKLIKKMGDHLTNLHRLGGPEA
+GLGEYLFERLTLKHD") 
+blast.results<-blast(seq,database="pdb")
+blast.pdb.ids<-(blast.results["pdb.id"])
+
+
+x<-read.pdb("http://www.rcsb.org/pdb/files/2fg4.pdb1",multi=TRUE)
 
 
 ###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 

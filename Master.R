@@ -14,8 +14,7 @@ blast.pdb.ids<-(blast.results["pdb.id"])
 
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 pdbid<-"2fg4"
-emptyurl<-"http://www.rcsb.org/pdb/files/___.pdb1"
-pdb.url<-sub("___",pdbid,emptyurl,fixed=TRUE)
+pdb.url<-sub("___",pdbid,"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
 x<-read.pdb(pdb.url,multi=TRUE)
 
@@ -198,55 +197,68 @@ points3d(x=onexval,y=oneyval,z=onezval,col="blue",box=FALSE,axes=FALSE)
 #Gives list of hydrophobic amino acids on first chain < 5 angstroms from another hydrophobic amino acid on a different chain
 
 atom.aminoacid.match<-numeric(0)
-
+residue.no.store<-numeric(0)
 p<-1
 
 
 
 
-while(p<length(residue.match.store)+1)
+while(p<=length(residue.match.store))
   
 {
-  
+  residue.no.store<-c(residue.no.store,x$atom[residue.match.store,6])
   atom.aminoacid.match<-c(atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",x$atom[residue.match.store,6][p]),collapse=""))
   
   p<-p+1
   
 }
 
-
+residue.no.store<-unique(residue.no.store)
+residue.no.store<-toString(residue.no.store)
 aminoacid.match<-unique(atom.aminoacid.match)
 print(aminoacid.match)
 
 
 atom.aminoacid.match2<-numeric(0)
-
+residue.no.store2<-numeric(0)
 p2<-1
 
-while(p2<length(residue.match.store2)+1)
+while(p2<=length(residue.match.store2))
   
 {
-  
+  residue.no.store2<-c(residue.no.store2,x$atom[residue.match.store2,6])
   atom.aminoacid.match2<-c(atom.aminoacid.match2,paste(c(x$atom[residue.match.store2,4][p2],"-",x$atom[residue.match.store2,6][p2]),collapse=""))
   
   p2<-p2+1
   
 }
 
-
+residue.no.store2<-unique(residue.no.store2)
+toString(residue.no.store2)
 aminoacid.match2<-unique(atom.aminoacid.match2)
 print(aminoacid.match2)
 
 
-# Create .py script to open pdb file of protein in Chimera and highlight interacting hydrophobic residues
+##### Create .cmd script to open pdb file of protein in Chimera and highlight interacting hydrophobic residues #####
 
-import<-"import chimera"
+open<-sub("___",pdbid,"open ___")
 
-fetch<-sub("___",pdbid,"openModels = chimera.openModels.open('___', type=\"PDB\")")
+add.sym<-"sym #0"
 
-compile<-c(import,fetch)
+# Makes residue string compatible with chimera command line by deleting spaces between residue numbers
+i<-1
+while(i<nchar(residue.no.store))
+{
+	residue.no.store<-sub(", ",",",residue.no.store,fixed=TRUE)
+	i<-i+1
+}
 
-write(x=compile,file=".py")
+colour<-sub("___",residue.no.store,"colour red :___")
+
+show<-sub("___",residue.no.store,"show :___")
+
+compile<-c(open,add.sym,colour,show)
+write(x=compile,file="protein.cmd")
 
 # Draw interface mesh
 j<-1

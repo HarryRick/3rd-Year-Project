@@ -12,9 +12,12 @@ GLGEYLFERLTLKHD")
 blast.results<-blast.pdb(seq,database="pdb")
 blast.pdb.ids<-(blast.results["pdb.id"])
 
+# General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
+pdbid<-"2fg4"
+emptyurl<-"http://www.rcsb.org/pdb/files/___.pdb1"
+pdb.url<-sub("___",pdbid,emptyurl,fixed=TRUE)
 
-x<-read.pdb("http://www.rcsb.org/pdb/files/2fg4.pdb1",multi=TRUE)
-
+x<-read.pdb(pdb.url,multi=TRUE)
 
 ###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
 # Input chain number
@@ -233,6 +236,17 @@ while(p2<length(residue.match.store2)+1)
 
 aminoacid.match2<-unique(atom.aminoacid.match2)
 print(aminoacid.match2)
+
+
+# Create .py script to open pdb file of protein in Chimera and highlight interacting hydrophobic residues
+
+import<-"import chimera"
+
+fetch<-sub("___",pdbid,"openModels = chimera.openModels.open('___', type=\"PDB\")")
+
+compile<-c(import,fetch)
+
+write(x=compile,file=".py")
 
 # Draw interface mesh
 j<-1

@@ -3,10 +3,9 @@ require(BoSSA)
 require(rgl)
 require(bio3d)
 require(seqinr)
+require(RCurl)
 
 # Add BLAST search of pdb database and use top result from this as input to rest of script 
-
-require(RCurl)
 
 seq<-as.character("MSSQIRQNYSTDVEAAVNSLVNLYLQASYTYLSLGFYFDRDDVALEGVSHFFRELAEEKREGYERLLKMQNQRGGRALFQ
 DIKKPAEDEWGKTPDAMKAAMALEKKLNQALLDLHALGSARTDPHLCDFLETHFLDEEVKLIKKMGDHLTNLHRLGGPEA
@@ -37,6 +36,11 @@ NotFinished<-grep(x=result,pattern="waiting",ignore.case=TRUE)
 }
 
 sig.align.start<-(grep(result,pattern="Sequences producing significant alignments"))+2
+sig.align.end<-(grep(result,pattern="ALIGNMENTS"))-2
+
+all.pdb.result<-result[sig.align.start:sig.align.end]
+
+all.pdb.result<-strsplit(all.pdb.result,"  Chain")
 
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 pdbid<-"2fg4"
@@ -272,12 +276,8 @@ open<-sub("___",pdbid,"open ___")
 add.sym<-"sym #0"
 
 # Makes residue string compatible with chimera command line by deleting spaces between residue numbers
-i<-1
-while(i<nchar(residue.no.store))
-{
-	residue.no.store<-sub(", ",",",residue.no.store,fixed=TRUE)
-	i<-i+1
-}
+
+residue.no.store<-gsub(", ",",",residue.no.store,fixed=TRUE)
 
 colour<-sub("___",residue.no.store,"colour red :___")
 

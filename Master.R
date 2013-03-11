@@ -6,11 +6,37 @@ require(seqinr)
 
 # Add BLAST search of pdb database and use top result from this as input to rest of script 
 
+require(RCurl)
+
 seq<-as.character("MSSQIRQNYSTDVEAAVNSLVNLYLQASYTYLSLGFYFDRDDVALEGVSHFFRELAEEKREGYERLLKMQNQRGGRALFQ
 DIKKPAEDEWGKTPDAMKAAMALEKKLNQALLDLHALGSARTDPHLCDFLETHFLDEEVKLIKKMGDHLTNLHRLGGPEA
-GLGEYLFERLTLKHD") 
-blast.results<-blast.pdb(seq,database="pdb")
-blast.pdb.ids<-(blast.results["pdb.id"])
+GLGEYLFERLTLKHD")
+
+a<-postForm("http://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&BLAST_PROGRAMS=blastp&DATABASE=pdb&PAGE_TYPE=BlastSearch&SHOW_DEFAULTS=on&BLAST_SPEC=&LINK_LOC=blasttab&LAST_PAGE=blastp&CMD=PUT",QUERY=seq,.cgifields =c("BLAST"))
+
+# Extract the RID
+RIDa<-strsplit(x=a,split="RID")[[1]][6]
+RIDb<-strsplit(x=RIDa,split="value=\"")[[1]][2]
+RIDc<-strsplit(x=RIDb,split="\"")[[1]]
+RIDd<-RIDc[1]
+
+# Define the URL where the results can be found
+Search.output<-"http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?RESULTS_FILE=on&RID=XXX&FORMAT_TYPE=Text&FORMAT_OBJECT=Alignment&ALIGNMENTS=100&CMD=Get"
+
+# Enter the RID into the URL
+NewDestination<-gsub("XXX",RIDd,Search.output)
+
+# Read the results into R
+result<-readLines(NewDestination)
+NotFinished<-grep(x=result,pattern="waiting",ignore.case=TRUE)
+
+while(length(NotFinished)>0)
+{
+result<-readLines(NewDestination)
+NotFinished<-grep(x=result,pattern="waiting",ignore.case=TRUE)
+}
+
+sig.align.start<-(grep(result,pattern="Sequences producing significant alignments"))+2
 
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 pdbid<-"2fg4"

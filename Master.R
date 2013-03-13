@@ -42,6 +42,13 @@ all.pdb.result<-result[sig.align.start:sig.align.end]
 
 all.pdb.result<-strsplit(all.pdb.result,"  Chain")
 
+i<-1
+while(i<=length(all.pdb.result))
+{
+all.pdb.result<-c(all.pdb.result,strsplit(all.pdb.result[[i]],"   "))
+
+i<-i+1
+}
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 pdbid<-"2fg4"
 pdb.url<-sub("___",pdbid,"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)

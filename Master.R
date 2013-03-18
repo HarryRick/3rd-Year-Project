@@ -291,7 +291,8 @@ colour<-sub("___",residue.no.store,"colour red :___")
 show<-sub("___",residue.no.store,"show :___")
 
 compile<-c(open,add.sym,colour,show)
-write(x=compile,file="protein.cmd")
+write<-'x=compile,file="___.cmd"'
+write.cmd<-sub("___",pdbid,write)
 
 # Draw interface mesh
 j<-1

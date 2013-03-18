@@ -35,22 +35,30 @@ result<-readLines(NewDestination)
 NotFinished<-grep(x=result,pattern="waiting",ignore.case=TRUE)
 }
 
+
+#Parsing of data
 sig.align.start<-(grep(result,pattern="Sequences producing significant alignments"))+2
 sig.align.end<-(grep(result,pattern="ALIGNMENTS"))-2
 
 all.pdb.result<-result[sig.align.start:sig.align.end]
 
 all.pdb.result<-strsplit(all.pdb.result,"  Chain")
-
+all.pdb.result1<-character()
 i<-1
 while(i<=length(all.pdb.result))
 {
-all.pdb.result<-c(all.pdb.result,strsplit(all.pdb.result[[i]],"   "))
+all.pdb.result1<-c(all.pdb.result1,strsplit(all.pdb.result[[i]],"    ",fixed=TRUE))
 
 i<-i+1
 }
+
+blast.pdbs<-character()
+
+blast.pdbs<-grep(all.pdb.result1,pattern="pdb|",fixed=TRUE,value=TRUE)
+blast.pdbs<-grep(pattern=">pdb|",x=blast.pdbs,fixed=TRUE,value=TRUE,invert=TRUE)
+
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
-pdbid<-"2fg4"
+pdbid<-"3ajo"
 pdb.url<-sub("___",pdbid,"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
 x<-read.pdb(pdb.url,multi=TRUE)

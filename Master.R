@@ -291,8 +291,9 @@ colour<-sub("___",residue.no.store,"colour red :___")
 show<-sub("___",residue.no.store,"show :___")
 
 compile<-c(open,add.sym,colour,show)
-write<-'x=compile,file="___.cmd"'
-write.cmd<-sub("___",pdbid,write)
+
+file.name<-sub("___",pdbid,"___.cmd")
+write(x=compile,file=file.name)
 
 # Draw interface mesh
 j<-1

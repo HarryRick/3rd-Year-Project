@@ -47,15 +47,37 @@ all.pdb.result1<-character()
 i<-1
 while(i<=length(all.pdb.result))
 {
-all.pdb.result1<-c(all.pdb.result1,strsplit(all.pdb.result[[i]],"    ",fixed=TRUE))
+	all.pdb.result1<-c(all.pdb.result1,strsplit(all.pdb.result[[i]],"    ",fixed=TRUE))
 
-i<-i+1
+	i<-i+1
 }
+
 
 blast.pdbs<-character()
 
 blast.pdbs<-grep(all.pdb.result1,pattern="pdb|",fixed=TRUE,value=TRUE)
 blast.pdbs<-grep(pattern=">pdb|",x=blast.pdbs,fixed=TRUE,value=TRUE,invert=TRUE)
+
+i<-1
+
+while(i<=length(blast.pdbs))
+{
+	as.list(all.pdb.result1<-grep(all.pdb.result1,pattern=blast.pdbs[i],fixed=TRUE,value=TRUE,invert=TRUE))
+	i<-i+1
+}
+
+all.pdb.result1<-gsub('\"',"",all.pdb.result1)
+all.pdb.result1<-gsub(', ',"  ",all.pdb.result1)
+all.pdb.result1<-strsplit(all.pdb.result1,"  ")
+i<-1
+ch.blast.result<-character()
+while(i<=length(all.pdb.result1))
+{
+	ch.blast.result<-c(ch.blast.result,as.character(all.pdb.result1[[i]]))
+	i<-i+1
+}
+	
+all.pdb.result1<-grep(all.pdb.result1,pattern="c( ",fixed=TRUE,value=TRUE,invert=TRUE)
 
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 pdbid<-"3ajo"

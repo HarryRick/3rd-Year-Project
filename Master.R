@@ -4,6 +4,7 @@ require(rgl)
 require(bio3d)
 require(seqinr)
 require(RCurl)
+require(XML)
 
 # Add BLAST search of pdb database and use top result from this as input to rest of script 
 
@@ -20,23 +21,42 @@ RIDc<-strsplit(x=RIDb,split="\"")[[1]]
 RIDd<-RIDc[1]
 
 # Define the URL where the results can be found
-Search.output<-"http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?RESULTS_FILE=on&RID=XXX&FORMAT_TYPE=Text&FORMAT_OBJECT=Alignment&ALIGNMENTS=100&CMD=Get"
+Search.output<-"http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?RESULTS_FILE=on&RID=XXX&FORMAT_TYPE=XML&FORMAT_OBJECT=Alignment&ALIGNMENTS=100&CMD=Get"
 
 # Enter the RID into the URL
 NewDestination<-gsub("XXX",RIDd,Search.output)
 
 # Read the results into R
-result<-readLines(NewDestination)
-NotFinished<-grep(x=result,pattern="waiting",ignore.case=TRUE)
+fetched.data<-readLines(NewDestination)
+not.finished<-grep(x=fetched.data,pattern="waiting",ignore.case=TRUE)
 
-while(length(NotFinished)>0)
+while(length(not.finished)>0)
 {
-result<-readLines(NewDestination)
-NotFinished<-grep(x=result,pattern="waiting",ignore.case=TRUE)
+	fetched.data<-readLines(NewDestination)
+	not.finished<-grep(x=fetched.data,pattern="waiting",ignore.case=TRUE)
 }
 
+xml.data<-xmlTreeParse(fetched.data)
 
-#Parsing of data
+#Parsing of data (XML)
+
+
+blast.hits<-xmlRoot(xml.data)[["BlastOutput_iterations"]][["Iteration"]][["Iteration_hits"]]
+
+ids<-character()
+i<-1
+while(i<=xmlSize(blast.hits))
+{
+	ids[[i]] <- xmlValue(blast.hits[[i]][["Hit_id"]])
+	i<-i+1 
+}
+
+ids1<-strsplit(ids,"|",fixed=TRUE)
+pdb.ids<-grep(ids1,pattern="gi|",fixed=TRUE,value=TRUE,invert=TRUE)
+
+
+
+#Parsing of data (TEXT)
 sig.align.start<-(grep(result,pattern="Sequences producing significant alignments"))+2
 sig.align.end<-(grep(result,pattern="ALIGNMENTS"))-2
 

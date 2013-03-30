@@ -7,7 +7,7 @@ require(RCurl)
 require(XML)
 
 
-sig.pdb.ids<-"3AJO"
+sig.pdb.ids<-""
 
 # Checks if pdb.id has been entered, if it hasn't, use sequence blast data.
 if(nchar(sig.pdb.ids)==0)
@@ -71,25 +71,22 @@ if(nchar(sig.pdb.ids)==0)
 	}
 
 	blast.results<-data.frame(pdb.ids,blast.scores)
+
+
+	#Selecting statistically significant proteins for analysis
+
+	sig.pdb.ids<-character()
+	i<-1
+	while(blast.scores[i] >= 200)
+	{
+		sig.pdb.ids[i]<-pdb.ids[i]
+		i<-i+1
+	}
 }
-
-#Selecting statistically significant proteins for analysis
-
-sig.pdb.ids<-character()
-i<-1
-while(blast.scores[i] >= 200)
-{
-	sig.pdb.ids[i]<-pdb.ids[i]
-	i<-i+1
-}
-
-
-
-
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 
 master.i<-1
-while(master.i<=length(sig.pdb.ids)
+while(master.i<=length(sig.pdb.ids))
 {
 	pdb.url<-sub("___",sig.pdb.ids[master.i],"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
@@ -102,7 +99,7 @@ while(master.i<=length(sig.pdb.ids)
 	# Where required find and store correct chain names 
 	if (length(unique(x$atom[,5])) < chain.num ) 
   
- 	 { 
+ 	{ 
  	   new.chain.store<-numeric(0)
  	   chain.lib<-toupper(paste(letters[1:chain.num]))
 
@@ -113,14 +110,13 @@ while(master.i<=length(sig.pdb.ids)
 
 	# Replace old chian names with new ones
 	    while (i<=chain.num)
-
-	    {
+		{
 	      new.chain<-rep(chain.lib[i],atoms.per.chain)
 	      new.chain.store<-c(new.chain.store,new.chain)
 
  	     i<-i+1
-			}
-		}
+		 }
+	}
 	x$atom[,5]= new.chain.store
 
 	# Output of changechange without duplicates
@@ -318,7 +314,7 @@ while(master.i<=length(sig.pdb.ids)
 	
 	##### Create .cmd script to open pdb file of protein in Chimera and highlight interacting hydrophobic residues #####
 	
-	open<-sub("___",pdbid,"open ___")
+	open<-sub("___",sig.pdb.ids[master.i],"open ___")
 	
 	add.sym<-"sym #0"
 	
@@ -332,7 +328,7 @@ while(master.i<=length(sig.pdb.ids)
 	
 	compile<-c(open,add.sym,colour,show)
 	
-	file.name<-sub("___",pdbid,"___.cmd")
+	file.name<-sub("___",sig.pdb.ids[master.i],"___.cmd")
 	write(x=compile,file=file.name)
 
 	master.i<-master.i+1

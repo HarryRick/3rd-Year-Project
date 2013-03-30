@@ -10,7 +10,7 @@ require(XML)
 sig.pdb.ids<-"3AJO"
 
 # Checks if pdb.id has been entered, if it hasn't, use sequence blast data.
-if(nchar(sig.pdb.id)==0)
+if(nchar(sig.pdb.ids)==0)
 
 {
 	# Add BLAST search of pdb database and use top result from this as input to rest of script 
@@ -91,7 +91,7 @@ while(blast.scores[i] >= 200)
 master.i<-1
 while(master.i<=length(sig.pdb.ids)
 {
-	pdb.url<-sub("___",pdbid,"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
+	pdb.url<-sub("___",sig.pdb.ids[master.i],"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
 	x<-read.pdb(pdb.url,multi=TRUE)
 

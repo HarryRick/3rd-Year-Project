@@ -116,8 +116,9 @@ while(master.i<=length(sig.pdb.ids))
 
  	     i<-i+1
 		 }
-	}
 	x$atom[,5]= new.chain.store
+	}
+	
 
 	# Output of changechange without duplicates
 	chains<-unique(new.chain.store)

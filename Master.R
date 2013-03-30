@@ -93,45 +93,39 @@ while(master.i<=length(sig.pdb.ids))
 	x<-read.pdb(pdb.url,multi=TRUE)
 
 	###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
-	# Input chain number
-	chain.num<-24
 
+	chain.lib<-toupper(paste(letters[1:26]))
 	# Where required find and store correct chain names 
-	if (length(unique(x$atom[,5])) < chain.num ) 
-  
- 	{ 
- 	   new.chain.store<-numeric(0)
- 	   chain.lib<-toupper(paste(letters[1:chain.num]))
 
-	# Calculate atoms per chain
-
-  	  atoms.per.chain<-length(x$atom[,5])/chain.num
-  	  i<-1
-
-	# Replace old chian names with new ones
-	    while (i<=chain.num)
+	if(length(unique(x$atom[,5]))==1)
+	{	
+		i<-1
+		p<-0
+		for(i in 1:length(x$atom[,1]))
 		{
-	      new.chain<-rep(chain.lib[i],atoms.per.chain)
-	      new.chain.store<-c(new.chain.store,new.chain)
+			if(x$atom[i,1]==1 || p == 0)
+			{
+				p<-p+1
+			}
 
- 	     i<-i+1
-		 }
-	x$atom[,5]= new.chain.store
+			x$atom[i,5]=chain.lib[p]
+		}
 	}
 	
 
-	# Output of changechange without duplicates
-	chains<-unique(new.chain.store)
+	# Output of change without duplicates
+	chains<-unique(x$atom[,5])
 
 	# Assigns each amino acid its specific chain.
 	reference.ids<-numeric(0)
 	i<-1
-	  while (i<=length(x$atom[,6]))
-	  {
-	    reference.ids<-c(reference.ids,paste(c(x$atom[,5][i],"-",x$atom[,6][i]),collapse=""))
-	    i<-i+1
-	  }
 
+	n<-length(x$atom[,6])
+
+	while (i<=n) {
+		reference.ids[i]<-paste(c(x$atom[i,5],"-",x$atom[i,6]),collapse="")
+	  i<-i+1
+	}
 
 	# one contains only the data from the first chain and none of the others.
 	one<-chains[1]
@@ -168,8 +162,6 @@ while(master.i<=length(sig.pdb.ids))
 	One.yhydro<-as.numeric(x$atom[,9][hydrophobesr1])
 	One.zhydro<-as.numeric(x$atom[,10][hydrophobesr1])
 	
-	# Plots the first chain 
-	plot3d(x=One.xhydro,y=One.yhydro,z=One.zhydro,box=0,axes=0,col=7,type="s",radius=0.5)
 	
 	# Run a loop to find the proximity of other atoms in structure 
 	# Future proximity residue will be stored in these

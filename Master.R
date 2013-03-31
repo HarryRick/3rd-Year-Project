@@ -90,31 +90,40 @@ while(master.i<=length(sig.pdb.ids))
 {
 	pdb.url<-sub("___",sig.pdb.ids[master.i],"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
-	x<-read.pdb(pdb.url,multi=TRUE)
+	x<-read.pdb(pdb.url,multi=TRUE,rm.alt=FALSE)
 
 	###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
 
 	chain.lib<-toupper(paste(letters[1:26]))
-	# Where required find and store correct chain names 
-
-	if(length(unique(x$atom[,5]))==1)
-	{	
-		i<-1
-		p<-0
-		for(i in 1:length(x$atom[,1]))
+	# Find and store correct chain names 
+	new.chain.store<-character()
+	n<-length(x$atom[,1])
+	i<-1
+	j<-1	
+	p<-1
+	while(i<=n)
+	{
+		if(j!=x$atom[i,1])
 		{
-			if(x$atom[i,1]==1 || p == 0)
+			
+			p<-p+1
+			j=x$atom[i,1]
+			j<-as.numeric(j)
+			if(x$atom[i,1]==1)
 			{
-				p<-p+1
+				j<-1
 			}
-
-			x$atom[i,5]=chain.lib[p]
 		}
+
+		new.chain.store[i]<-chain.lib[p]
+		j<-j+1
+		i<-i+1
 	}
+	
 	
 
 	# Output of change without duplicates
-	chains<-unique(x$atom[,5])
+	chains<-unique(new.chain.store)
 
 	# Assigns each amino acid its specific chain.
 	reference.ids<-numeric(0)
@@ -123,13 +132,13 @@ while(master.i<=length(sig.pdb.ids))
 	n<-length(x$atom[,6])
 
 	while (i<=n) {
-		reference.ids[i]<-paste(c(x$atom[i,5],"-",x$atom[i,6]),collapse="")
+		reference.ids[i]<-paste(c(new.chain.store[i],"-",x$atom[i,6]),collapse="")
 	  i<-i+1
 	}
 
 	# one contains only the data from the first chain and none of the others.
 	one<-chains[1]
-	one<-grep(x=((x$atom[,5])==one),pattern=TRUE)
+	one<-grep(x=((new.chain.store)==one),pattern=TRUE)
 
 
 	# Selects all atoms from hydorphobic amino acids which are not in the first chain
@@ -197,7 +206,7 @@ while(master.i<=length(sig.pdb.ids))
 	      
 	      
 	      # Which residue has a hydrophobic interaction
-	      residue<-paste(c(x$atom[,5][one][hydrophobesr1][j],"-",x$atom[,6][one][hydrophobesr1][j]),collapse="")
+	      residue<-paste(c(new.chain.store[one][hydrophobesr1][j],"-",x$atom[,6][one][hydrophobesr1][j]),collapse="")
 	      residue.match<-grep(pattern=TRUE,x=residue==reference.ids)
 	      
 	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
@@ -214,7 +223,7 @@ while(master.i<=length(sig.pdb.ids))
 	      plot3d(x=interface.x,y=interface.y,z=interface.z,col=3,box=FALSE)
 	      
 	      # Find partner
-	      residue2<-paste(c(x$atom[,5][-one][hydrophobesr][i],"-",x$atom[,6][-one][hydrophobesr][i]),collapse="")
+	      residue2<-paste(c(new.chain.store[-one][hydrophobesr][i],"-",x$atom[,6][-one][hydrophobesr][i]),collapse="")
 	      residue.match2<-grep(pattern=TRUE,x=residue2==reference.ids)
 	      
 	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
@@ -248,7 +257,7 @@ while(master.i<=length(sig.pdb.ids))
 	
 	
 	
-	chain.match<-x$atom[,5][residue.match.store]
+	chain.match<-new.chain.store[residue.match.store]
 	
 	#total spatial points for first chain
 	onexval<-x.val[one]

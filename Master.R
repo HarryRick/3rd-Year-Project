@@ -333,6 +333,19 @@ while(master.i<=length(sig.pdb.ids))
 
 	##### Uses PrimerX to find mutagenesis primers for breaking apart protein.
 	
+	# Fixes residue numbers 
+	
+	residue.numbers<-as.numeric(x$atom[,6])
+	
+	if(x$atom[1,4]!="MET")
+	{
+		residue.numbers<-residue.numbers+1
+	}
+	if(x$atom[1,4]!=seq[residue.numbers[1]])
+	{
+		residue.numbers<-residue.numbers-residue.numbers[1]+1
+	}
+	
 	# Generates mutation codes for primerX
 	one.letter.aminoacid.match<-aminoacid.match2
 	one.letter.aminoacid.match<-gsub("CYS-","C",one.letter.aminoacid.match,fixed=TRUE)

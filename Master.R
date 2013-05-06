@@ -2,10 +2,9 @@
 require(BoSSA)
 require(rgl)
 require(bio3d)
-require(seqinr)
 require(RCurl)
 require(XML)
-
+require(Biostrings)
 
 sig.pdb.ids<-""
 
@@ -13,11 +12,11 @@ sig.pdb.ids<-""
 if(nchar(sig.pdb.ids)==0)
 
 {
-	# Add BLAST search of pdb database and use top result from this as input to rest of script 
-
-	seq<-as.character("MSSQIRQNYSTDVEAAVNSLVNLYLQASYTYLSLGFYFDRDDVALEGVSHFFRELAEEKREGYERLLKMQNQRGGRALFQ
-	DIKKPAEDEWGKTPDAMKAAMALEKKLNQALLDLHALGSARTDPHLCDFLETHFLDEEVKLIKKMGDHLTNLHRLGGPEA
-	GLGEYLFERLTLKHD")
+	# Add BLAST search of pdb database and use top result from this as input to rest of script
+	dna.seq<-"ATGTCTAGCCAAATTCGCCAGAATTACAGCACCGACGTTGAAGCGGCAGTCAACAGCCTGGTTAATCTGTACTTGCAGGCCAGCTATACGTATCTGAGCCTGGGCTTTTACTTTGACCGCGACGATGTGGCCTTGGAAGGCGTGAGCCACTTTTTCCGTGAGCTGGCGGAAGAGAAACGCGAAGGCTATGAGCGCCTGCTGAAAATGCAGAACCAACGTGGCGGTCGTGCTCTGTTCCAAGACATCAAGAAACCGGCGGAAGATGAGTGGGGTAAAACCCCGGATGCGATGAAGGCCGCAATGGCTTTGGAGAAGAAACTGAATCAGGCACTGCTGGATCTGCACGCGCTGGGTTCCGCACGTACCGACCCGCACCTGTGCGATTTCTTGGAAACGCATTTTCTGGACGAAGAGGTCAAGCTGATCAAGAAAATGGGCGACCACCTGACGAACTTGCATCGTCTGGGTGGTCCAGAGGCGGGTCTGGGTGAGTACCTGTTCGAGCGTCTGACTCTGAAGCATGATCCCGGG"
+	dna.string<-DNAString(dna.seq)
+	prot.seq<-translate(dna.string)
+	seq<-as.character(prot.seq)
 
 	a<-postForm("http://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&BLAST_PROGRAMS=blastp&DATABASE=pdb&PAGE_TYPE=BlastSearch&SHOW_DEFAULTS=on&BLAST_SPEC=&LINK_LOC=blasttab&LAST_PAGE=blastp&CMD=PUT",QUERY=seq,.cgifields =c("BLAST"))
 
@@ -46,7 +45,6 @@ if(nchar(sig.pdb.ids)==0)
 	xml.data<-xmlTreeParse(fetched.data)
 
 	#Parsing of data (XML)
-
 
 	blast.hits<-xmlRoot(xml.data)[["BlastOutput_iterations"]][["Iteration"]][["Iteration_hits"]]
 	blast.scores<-numeric()
@@ -84,7 +82,7 @@ if(nchar(sig.pdb.ids)==0)
 	}
 }
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
-
+aminoacid.match2.store<-character()
 master.i<-1
 while(master.i<=length(sig.pdb.ids))
 {
@@ -197,8 +195,8 @@ while(master.i<=length(sig.pdb.ids))
 	  {
 	    #Calculates distance between residues
 	    proximity<-(((x1-x.hydro[i])^2)+((y1-y.hydro[i])^2)+((z1-z.hydro[i])^2))^0.5
-	    #If distance < 5
-	    if (proximity < 5)
+	    #If distance < 4.5
+	    if (proximity < 4.5)
 	    {
 	      
 	      
@@ -283,7 +281,6 @@ while(master.i<=length(sig.pdb.ids))
 	{
 	  residue.no.store<-c(residue.no.store,x$atom[residue.match.store,6])
 	  atom.aminoacid.match<-c(atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",x$atom[residue.match.store,6][p]),collapse=""))
-	  
 	  p<-p+1
 	  
 	}
@@ -313,7 +310,8 @@ while(master.i<=length(sig.pdb.ids))
 	aminoacid.match2<-unique(atom.aminoacid.match2)
 	print(aminoacid.match2)
 	
-	
+	aminoacid.match2.store<-c(aminoacid.match2.store,aminoacid.match2)
+		
 	##### Create .cmd script to open pdb file of protein in Chimera and highlight interacting hydrophobic residues #####
 	
 	open<-sub("___",sig.pdb.ids[master.i],"open ___")
@@ -333,41 +331,32 @@ while(master.i<=length(sig.pdb.ids))
 	file.name<-sub("___",sig.pdb.ids[master.i],"___.cmd")
 	write(x=compile,file=file.name)
 
+	##### Uses PrimerX to find mutagenesis primers for breaking apart protein.
+	
+	# Generates mutation codes for primerX
+	one.letter.aminoacid.match<-aminoacid.match2
+	one.letter.aminoacid.match<-gsub("CYS-","C",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("ALA-","A",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("ILE-","I",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("LEU-","L",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("PHE-","F",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("MET-","M",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("TRP-","W",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-gsub("VAL-","V",one.letter.aminoacid.match,fixed=TRUE)
+
+	mutation.codes<-character()
+	mutation.codes<-paste(one.letter.aminoacid.match,"R",sep="")
+		
+	i<-1
+	primer.finder<-postForm("http://www.bioinformatics.org/primerx/cgi-bin/protein_3.cgi",
+	orig_DNA_sequence=dna.seq,
+	chopped_DNA_sequence="",
+	orig_AA_sequence=seq,
+	code=mutation.codes[i],
+	protocol="basic",
+	Next="Next")
+	
 	master.i<-master.i+1
-}
-# Draw interface mesh
-j<-1
-while (j<length(chain.match)+1)
-  
-{
-  x1<-interface.x[j]
-  y1<-interface.y[j]
-  z1<-interface.z[j]
-  
-  proximity.store<-numeric(0)
-  
-  
-  i<-1
-  
-  while (i<length(interface.x)+1)
-  {
-    #Calculate distance
-    proximity<-(((x1-interface.x[i])^2)+((y1-interface.y[i])^2)+((z1-interface.z[i])^2))^0.5
-    #Save distance
-    proximity.store<-c(proximity.store,proximity)
-    i<-i+1
-  }
-  
-  sequ<-(rev(seq(0,1,(1/6)))^2)[1:6]
-  
-  t<-1
-  while(t<6)
-  {
-    x3<-c(interface.x[j],interface.x[order(proximity.store)[-1][t]])
-    y3<-c(interface.y[j],interface.y[order(proximity.store)[-1][t]])
-    z3<-c(interface.z[j],interface.z[order(proximity.store)[-1][t]])
-    plot3d(x=x3,y=y3,z=z3,add=TRUE,type="l",col=grep(pattern=chain.match[j],x=unique(chain.match)),lwd=5,alpha=sequ[t])
-    t<-t+1
-  }
-  j<-j+1
+	
+	
 }

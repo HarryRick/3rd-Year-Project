@@ -333,6 +333,42 @@ while(master.i<=length(sig.pdb.ids))
 
 	##### Uses PrimerX to find mutagenesis primers for breaking apart protein.
 	
+
+	seq.as.character<-character()
+	i<-1
+	while(i<=nchar(seq))
+	{
+	seq.as.character[i]<-substring(seq,i,i)	
+	i<-i+1
+	}
+	
+	
+	three.letter.seq<-seq.as.character
+	i<-1
+	while(i<=length(one.letter.seq))
+	{
+		one.letter.seq[i]<-gsub("A","ALA",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("R","ARG",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("N","ASN",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("D","ASP",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("C","CYS",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("Q","GLN",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("E","GLU",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("G","GLY",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("H","HIS",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("I","ILE",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("L","LEU",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("K","LYS",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("M","MET",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("F","PHE",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("P","PRO",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("S","SER",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("T","THR",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("W","TRP",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("Y","TYR",one.letter.seq[i],fixed=TRUE)
+		one.letter.seq[i]<-gsub("V","VAL",one.letter.seq[i],fixed=TRUE)
+		i<-i+1	
+	}
 	# Fixes residue numbers 
 	
 	residue.numbers<-as.numeric(x$atom[,6])

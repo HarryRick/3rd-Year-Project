@@ -1,4 +1,3 @@
-
 hydrophobes.assign<-function(val,ile,leu,met,phe,trp,cys,ala,one,x)
 {
   val<-grep(x=((x$atom[,4][-one])=="VAL"),pattern=TRUE)
@@ -70,4 +69,56 @@ Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1,Hsg.1,hydrophobes1,x)
   Hch2.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="CH2"))                    
   Hsg.1<-na.omit(subset(hydrophobes1,x$atom[,2]=="SG"))                                  
   sort(c(Hcb.1,Hcg.1,Hsd.1,Hce.1,Hcg1.1,Hcg2.1,Hcd1.1,Hcd2.1,Hce1.1,Hce2.1,Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1))
+}
+
+
+
+# New function to translate character vector of one letter amino acid sequence to three letter code (doesn't work yet)
+one.to.three.translate<-function(three.letter.seq,i)
+{
+  i<-1
+  while(i<=length(three.letter.seq))
+	{	
+	 	if(nchar(three.letter.seq[i])==1)
+	 		{three.letter.seq[i]<-sub("A","ALA",three.letter.seq[i])}
+	 	if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("R","ARG",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("N","ASN",three.letter.seq[i])}
+		if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("D","ASP",three.letter.seq[i])}
+		if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("C","CYS",three.letter.seq[i])}
+ 		if(nchar(three.letter.seq[i])==1)
+	 		{three.letter.seq[i]<-sub("Q","GLN",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("E","GLU",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("G","GLY",three.letter.seq[i])}
+		if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("H","HIS",three.letter.seq[i])}
+		if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("I","ILE",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("L","LEU",three.letter.seq[i])}
+		if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("K","LYS",three.letter.seq[i])}
+		if(nchar(three.letter.seq[i])==1)
+			{three.letter.seq[i]<-sub("M","MET",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("F","PHE",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("P","PRO",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("S","SER",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("T","THR",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("W","TRP",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+	  	{three.letter.seq[i]<-sub("Y","TYR",three.letter.seq[i])}
+	  if(nchar(three.letter.seq[i])==1)
+	  	{three.letter.seq[i]<-sub("V","VAL",three.letter.seq[i])}
+	  i<-i+1	
+	}
 }

@@ -218,9 +218,7 @@ while(master.i<=length(sig.pdb.ids))
 	# Future proximity residue will be stored in these
 	residue.match.store<-numeric(0)
 	residue.match.store2<-numeric(0)
-	primer.residue.match.store<-numeric(0)
-	primer.residue.match.store2<-numeric(0)
-	
+
 	j<-1
 	
 	while (j<=length(One.xhydro))
@@ -254,12 +252,6 @@ while(master.i<=length(sig.pdb.ids))
 	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
 	      residue.match.store<-c(residue.match.store,residue.match)
 	      residue.match.store<-unique(residue.match.store)
-	      # Does the same but for primer mutation codes (with fixed residue numbers)
-	      primer.residue<-paste(c(new.chain.store[one][hydrophobesr1][j],"-",residue.numbers[one][hydrophobesr1][j]),collapse="")	
- 	      primer.residue.match<-grep(pattern=TRUE,x=primer.residue==primer.reference.ids)
-
-	      primer.residue.match.store<-c(primer.residue.match.store,primer.residue.match)
-	      primer.residue.match.store<-unique(primer.residue.match.store)
 		
 	      # this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
 	      interface.x<-x$atom[,8][residue.match.store]
@@ -275,12 +267,6 @@ while(master.i<=length(sig.pdb.ids))
 	      residue.match.store2<-c(residue.match.store2,residue.match2)
 	      residue.match.store2<-unique(residue.match.store2)
 	      
-	      #Again but for primers
-	      primer.residue2<-paste(c(new.chain.store[-one][hydrophobesr][i],"-",residue.numbers[-one][hydrophobesr][i]),collapse="")	
- 	      primer.residue.match2<-grep(pattern=TRUE,x=primer.residue2==primer.reference.ids)
-
-	      primer.residue.match.store2<-c(primer.residue.match.store2,primer.residue.match2)
-	      primer.residue.match.store2<-unique(primer.residue.match.store2)
 	      # this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
 	      interface.x2<-x$atom[,8][residue.match.store2]
 	      interface.y2<-x$atom[,9][residue.match.store2]
@@ -357,7 +343,7 @@ while(master.i<=length(sig.pdb.ids))
 	aminoacid.match2.store<-c(aminoacid.match2.store,aminoacid.match2)
 	
 
-	#Does the same but for primers
+	#Does the same but for primer mutation codes
 	primer.atom.aminoacid.match<-numeric(0)
 	primer.residue.no.store<-numeric(0)
 	p<-1

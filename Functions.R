@@ -74,51 +74,68 @@ Hcz.1,Hne1.1,Hce3.1,Hcz2.1,Hcz3.1,Hch2.1,Hsg.1,hydrophobes1,x)
 
 
 # New function to translate character vector of one letter amino acid sequence to three letter code (doesn't work yet)
-one.to.three.translate<-function(three.letter.seq,i)
+one.to.three.translate<-function(x)
 {
   i<-1
-  while(i<=length(three.letter.seq))
+  while(i<=length(x))
 	{	
-	 	if(nchar(three.letter.seq[i])==1)
-	 		{three.letter.seq[i]<-sub("A","ALA",three.letter.seq[i])}
-	 	if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("R","ARG",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("N","ASN",three.letter.seq[i])}
-		if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("D","ASP",three.letter.seq[i])}
-		if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("C","CYS",three.letter.seq[i])}
- 		if(nchar(three.letter.seq[i])==1)
-	 		{three.letter.seq[i]<-sub("Q","GLN",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("E","GLU",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("G","GLY",three.letter.seq[i])}
-		if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("H","HIS",three.letter.seq[i])}
-		if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("I","ILE",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("L","LEU",three.letter.seq[i])}
-		if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("K","LYS",three.letter.seq[i])}
-		if(nchar(three.letter.seq[i])==1)
-			{three.letter.seq[i]<-sub("M","MET",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("F","PHE",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("P","PRO",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("S","SER",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("T","THR",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("W","TRP",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-	  	{three.letter.seq[i]<-sub("Y","TYR",three.letter.seq[i])}
-	  if(nchar(three.letter.seq[i])==1)
-	  	{three.letter.seq[i]<-sub("V","VAL",three.letter.seq[i])}
-	  i<-i+1	
+		if(nchar(x[i])==1)
+	 		{x[i]<-sub("A","ALA",x[i])}
+	 	if(nchar(x[i])==1)
+			{x[i]<-sub("R","ARG",x[i])}
+  		if(nchar(x[i])==1)
+			{x[i]<-sub("N","ASN",x[i])}
+		if(nchar(x[i])==1)
+  			{x[i]<-sub("D","ASP",x[i])}
+		if(nchar(x[i])==1)
+			{x[i]<-sub("C","CYS",x[i])}
+ 		if(nchar(x[i])==1)
+	 		{x[i]<-sub("Q","GLN",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("E","GLU",x[i])}
+  		if(nchar(x[i])==1)
+			{x[i]<-sub("G","GLY",x[i])}
+		if(nchar(x[i])==1)
+			{x[i]<-sub("H","HIS",x[i])}
+		if(nchar(x[i])==1)
+			{x[i]<-sub("I","ILE",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("L","LEU",x[i])}
+		if(nchar(x[i])==1)
+			{x[i]<-sub("K","LYS",x[i])}
+		if(nchar(x[i])==1)
+			{x[i]<-sub("M","MET",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("F","PHE",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("P","PRO",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("S","SER",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("T","THR",x[i])}
+  		if(nchar(x[i])==1)
+  			{x[i]<-sub("W","TRP",x[i])}
+  		if(nchar(x[i])==1)
+		  	{x[i]<-sub("Y","TYR",x[i])}
+		if(nchar(x[i])==1)
+	 	 	{x[i]<-sub("V","VAL",x[i])}
+		i<-i+1	
 	}
+return(x)
+}
+
+# Generates mutation codes for primerX
+
+hydrophobic.3to1.translate<-function(x)	
+{
+	x<-sub("CYS-","C",x,fixed=TRUE)
+	x<-sub("ALA-","A",x,fixed=TRUE)
+	x<-sub("ILE-","I",x,fixed=TRUE)
+	x<-sub("LEU-","L",x,fixed=TRUE)
+	x<-sub("PHE-","F",x,fixed=TRUE)
+	x<-sub("MET-","M",x,fixed=TRUE)
+	x<-sub("TRP-","W",x,fixed=TRUE)
+	x<-sub("VAL-","V",x,fixed=TRUE)
+
+	return(x)
 }

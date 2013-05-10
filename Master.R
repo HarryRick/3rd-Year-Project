@@ -5,6 +5,7 @@ require(bio3d)
 require(RCurl)
 require(XML)
 require(Biostrings)
+source(file="functions.r")
 
 sig.pdb.ids<-""
 
@@ -82,80 +83,6 @@ if(nchar(sig.pdb.ids)==0)
 	}
 }
 	
-### Fixes residue numbers 
-	
-#Goes through first 100 amino acid identifiers in x$atom and compares them with those in three.letter.seq. If any
-#differ then it will change the fix the residue number identifiers so both residue numbers are the same as seq.
-#Also adds one to residue numbers if the first entry in x$atom is not a methionine.  
-	
-# Converts seq to a three letter sequence 
-three.letter.seq<-seq.as.character
-i<-1
-while(i<=length(three.letter.seq))
-{	
- 	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("A","ALA",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("R","ARG",three.letter.seq[i])}
- 	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("N","ASN",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("D","ASP",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("C","CYS",three.letter.seq[i])}
- 	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("Q","GLN",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("E","GLU",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("G","GLY",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("H","HIS",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("I","ILE",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("L","LEU",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("K","LYS",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("M","MET",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("F","PHE",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("P","PRO",three.letter.seq[i])}
- 	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("S","SER",three.letter.seq[i])}
- 	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("T","THR",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-  		{three.letter.seq[i]<-sub("W","TRP",three.letter.seq[i])}
-  	if(nchar(three.letter.seq[i])==1)
-	  	{three.letter.seq[i]<-sub("Y","TYR",three.letter.seq[i])}
-	if(nchar(three.letter.seq[i])==1)
-		{three.letter.seq[i]<-sub("V","VAL",three.letter.seq[i])}
-	i<-i+1	
-	}
-
-residue.numbers<-as.numeric(x$atom[,6])
-i<-1
-p<-as.numeric(x$atom[1,6])-1
-while(i<=150)
-{
-	if(x$atom[i,6]>p)
-	{
-		if(x$atom[i,4]!=three.letter.seq[residue.numbers[p]])
-		{	
-			residue.numbers<-residue.numbers-residue.numbers[1]+1
-			i<-150
-			if(x$atom[1,4]!="MET")
-			{
-				residue.numbers<-residue.numbers+1
-			}
-		}
-		else p<-p+1
-	}
-	i<-i+1	
-}
 
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 aminoacid.match2.store<-character()
@@ -165,6 +92,41 @@ while(master.i<=length(sig.pdb.ids))
 	pdb.url<-sub("___",sig.pdb.ids[master.i],"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
 	x<-read.pdb(pdb.url,multi=TRUE,rm.alt=FALSE)
+
+
+	### Fixes residue numbers 
+	
+	# Converts seq to a character vector with each letter seperated
+	seq.as.character<-seq.split(seq)
+	
+	# Converts seq to a three letter sequence 
+	three.letter.seq<-one.to.three.translate(seq.as.character)
+	
+	#Goes through first 100 amino acid identifiers in x$atom and compares them with those in three.letter.seq. If any
+	#differ then it will change the fix the residue number identifiers so both residue numbers are the same as seq.
+	#Also adds one to residue numbers if the first entry in x$atom is not a methionine.  
+	
+	residue.numbers<-as.numeric(x$atom[,6])
+	i<-1
+	p<-as.numeric(x$atom[1,6])-1
+	while(i<=150)
+	{
+		if(x$atom[i,6]>p)
+		{
+			if(x$atom[i,4]!=three.letter.seq[residue.numbers[p]])
+			{	
+				residue.numbers<-residue.numbers-residue.numbers[1]+1
+				i<-150
+				if(x$atom[1,4]!="MET")
+				{
+					residue.numbers<-residue.numbers+1
+				}
+			}
+			else p<-p+1
+		}
+		i<-i+1	
+	}
+
 
 	###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
 
@@ -433,25 +395,8 @@ while(master.i<=length(sig.pdb.ids))
 
 	##### Uses PrimerX to find mutagenesis primers for breaking apart protein.
 	
-	# Converts seq to a character vector with each letter seperated
-	seq.as.character<-character()
-	i<-1
-	while(i<=nchar(seq))
-	{
-	seq.as.character[i]<-substring(seq,i,i)	
-	i<-i+1
-	}
-	
 	# Generates mutation codes for primerX
-	one.letter.aminoacid.match<-primer.aminoacid.match
-	one.letter.aminoacid.match<-sub("CYS-","C",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("ALA-","A",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("ILE-","I",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("LEU-","L",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("PHE-","F",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("MET-","M",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("TRP-","W",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-sub("VAL-","V",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-hydrophobic.3to1.translate(primer.aminoacid.match)
 
 	mutation.codes<-character()
 	mutation.codes<-paste(one.letter.aminoacid.match,"R",sep="")

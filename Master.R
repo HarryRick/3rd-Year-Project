@@ -81,6 +81,82 @@ if(nchar(sig.pdb.ids)==0)
 		i<-i+1
 	}
 }
+	
+### Fixes residue numbers 
+	
+#Goes through first 100 amino acid identifiers in x$atom and compares them with those in three.letter.seq. If any
+#differ then it will change the fix the residue number identifiers so both residue numbers are the same as seq.
+#Also adds one to residue numbers if the first entry in x$atom is not a methionine.  
+	
+# Converts seq to a three letter sequence 
+three.letter.seq<-seq.as.character
+i<-1
+while(i<=length(three.letter.seq))
+{	
+ 	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("A","ALA",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("R","ARG",three.letter.seq[i])}
+ 	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("N","ASN",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("D","ASP",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("C","CYS",three.letter.seq[i])}
+ 	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("Q","GLN",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("E","GLU",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("G","GLY",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("H","HIS",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("I","ILE",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("L","LEU",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("K","LYS",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("M","MET",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("F","PHE",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("P","PRO",three.letter.seq[i])}
+ 	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("S","SER",three.letter.seq[i])}
+ 	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("T","THR",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+  		{three.letter.seq[i]<-sub("W","TRP",three.letter.seq[i])}
+  	if(nchar(three.letter.seq[i])==1)
+	  	{three.letter.seq[i]<-sub("Y","TYR",three.letter.seq[i])}
+	if(nchar(three.letter.seq[i])==1)
+		{three.letter.seq[i]<-sub("V","VAL",three.letter.seq[i])}
+	i<-i+1	
+	}
+
+residue.numbers<-as.numeric(x$atom[,6])
+i<-1
+p<-as.numeric(x$atom[1,6])-1
+while(i<=150)
+{
+	if(x$atom[i,6]>p)
+	{
+		if(x$atom[i,4]!=three.letter.seq[residue.numbers[p]])
+		{	
+			residue.numbers<-residue.numbers-residue.numbers[1]+1
+			i<-150
+			if(x$atom[1,4]!="MET")
+			{
+				residue.numbers<-residue.numbers+1
+			}
+		}
+		else p<-p+1
+	}
+	i<-i+1	
+}
+
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 aminoacid.match2.store<-character()
 master.i<-1
@@ -126,18 +202,24 @@ while(master.i<=length(sig.pdb.ids))
 	# Assigns each amino acid its specific chain.
 	reference.ids<-numeric(0)
 	i<-1
-
 	n<-length(x$atom[,6])
-
-	while (i<=n) {
+	while (i<=n) 
+	{
 		reference.ids[i]<-paste(c(new.chain.store[i],"-",x$atom[i,6]),collapse="")
-	  i<-i+1
+		i<-i+1
 	}
 
+	primer.reference.ids<-numeric(0)
+	i<-1
+	n<-length(x$atom[,6])
+	while (i<=n) 
+	{
+		primer.reference.ids[i]<-paste(c(new.chain.store[i],"-",residue.numbers[i]),collapse="")
+		i<-i+1
+	}
 	# one contains only the data from the first chain and none of the others.
 	one<-chains[1]
 	one<-grep(x=((new.chain.store)==one),pattern=TRUE)
-
 
 	# Selects all atoms from hydorphobic amino acids which are not in the first chain
 	hydrophobes<-hydrophobes.assign(val,ile,leu,met,phe,trp,cys,ala,one,x)
@@ -174,6 +256,8 @@ while(master.i<=length(sig.pdb.ids))
 	# Future proximity residue will be stored in these
 	residue.match.store<-numeric(0)
 	residue.match.store2<-numeric(0)
+	primer.residue.match.store<-numeric(0)
+	primer.residue.match.store2<-numeric(0)
 	
 	j<-1
 	
@@ -201,20 +285,21 @@ while(master.i<=length(sig.pdb.ids))
 	      
 	      
 	      # residue contains each atom closer than 4 angstroms apart and what chain they are on.
-	      
-	      
 	      # Which residue has a hydrophobic interaction
 	      residue<-paste(c(new.chain.store[one][hydrophobesr1][j],"-",x$atom[,6][one][hydrophobesr1][j]),collapse="")
 	      residue.match<-grep(pattern=TRUE,x=residue==reference.ids)
 	      
 	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
-	      
 	      residue.match.store<-c(residue.match.store,residue.match)
-	      
 	      residue.match.store<-unique(residue.match.store)
-	      
+	      # Does the same but for primer mutation codes (with fixed residue numbers)
+	      primer.residue<-paste(c(new.chain.store[one][hydrophobesr1][j],"-",residue.numbers[one][hydrophobesr1][j]),collapse="")	
+ 	      primer.residue.match<-grep(pattern=TRUE,x=primer.residue==primer.reference.ids)
+
+	      primer.residue.match.store<-c(primer.residue.match.store,primer.residue.match)
+	      primer.residue.match.store<-unique(primer.residue.match.store)
+		
 	      # this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
-	      
 	      interface.x<-x$atom[,8][residue.match.store]
 	      interface.y<-x$atom[,9][residue.match.store]
 	      interface.z<-x$atom[,10][residue.match.store]
@@ -225,13 +310,16 @@ while(master.i<=length(sig.pdb.ids))
 	      residue.match2<-grep(pattern=TRUE,x=residue2==reference.ids)
 	      
 	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
-	      
 	      residue.match.store2<-c(residue.match.store2,residue.match2)
-	      
 	      residue.match.store2<-unique(residue.match.store2)
 	      
+	      #Again but for primers
+	      primer.residue2<-paste(c(new.chain.store[-one][hydrophobesr][i],"-",residue.numbers[-one][hydrophobesr][i]),collapse="")	
+ 	      primer.residue.match2<-grep(pattern=TRUE,x=primer.residue2==primer.reference.ids)
+
+	      primer.residue.match.store2<-c(primer.residue.match.store2,primer.residue.match2)
+	      primer.residue.match.store2<-unique(primer.residue.match.store2)
 	      # this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
-	      
 	      interface.x2<-x$atom[,8][residue.match.store2]
 	      interface.y2<-x$atom[,9][residue.match.store2]
 	      interface.z2<-x$atom[,10][residue.match.store2]
@@ -272,17 +360,11 @@ while(master.i<=length(sig.pdb.ids))
 	atom.aminoacid.match<-numeric(0)
 	residue.no.store<-numeric(0)
 	p<-1
-	
-	
-	
-	
 	while(p<=length(residue.match.store))
-	  
 	{
 	  residue.no.store<-c(residue.no.store,x$atom[residue.match.store,6])
 	  atom.aminoacid.match<-c(atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",x$atom[residue.match.store,6][p]),collapse=""))
 	  p<-p+1
-	  
 	}
 	
 	residue.no.store<-unique(residue.no.store)
@@ -311,11 +393,29 @@ while(master.i<=length(sig.pdb.ids))
 	print(aminoacid.match2)
 	
 	aminoacid.match2.store<-c(aminoacid.match2.store,aminoacid.match2)
-		
+	
+
+	#Does the same but for primers
+	primer.atom.aminoacid.match<-numeric(0)
+	primer.residue.no.store<-numeric(0)
+	p<-1
+	while(p<=length(residue.match.store))
+	{
+	  primer.residue.no.store<-c(primer.residue.no.store,residue.numbers[residue.match.store])
+	  primer.atom.aminoacid.match<-c(primer.atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",residue.numbers[residue.match.store][p]),collapse=""))
+	  p<-p+1
+	}
+	
+	primer.residue.no.store<-unique(primer.residue.no.store)
+	primer.residue.no.store<-toString(primer.residue.no.store)
+	primer.aminoacid.match<-unique(primer.atom.aminoacid.match)
+	print(aminoacid.match)
+	
+
+	
 	##### Create .cmd script to open pdb file of protein in Chimera and highlight interacting hydrophobic residues #####
 	
 	open<-sub("___",sig.pdb.ids[master.i],"open ___")
-	
 	add.sym<-"sym #0"
 	
 	# Makes residue string compatible with chimera command line by deleting spaces between residue numbers
@@ -333,7 +433,7 @@ while(master.i<=length(sig.pdb.ids))
 
 	##### Uses PrimerX to find mutagenesis primers for breaking apart protein.
 	
-
+	# Converts seq to a character vector with each letter seperated
 	seq.as.character<-character()
 	i<-1
 	while(i<=nchar(seq))
@@ -342,56 +442,16 @@ while(master.i<=length(sig.pdb.ids))
 	i<-i+1
 	}
 	
-	
-	three.letter.seq<-seq.as.character
-	i<-1
-	while(i<=length(one.letter.seq))
-	{
-		one.letter.seq[i]<-gsub("A","ALA",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("R","ARG",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("N","ASN",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("D","ASP",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("C","CYS",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("Q","GLN",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("E","GLU",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("G","GLY",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("H","HIS",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("I","ILE",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("L","LEU",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("K","LYS",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("M","MET",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("F","PHE",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("P","PRO",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("S","SER",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("T","THR",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("W","TRP",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("Y","TYR",one.letter.seq[i],fixed=TRUE)
-		one.letter.seq[i]<-gsub("V","VAL",one.letter.seq[i],fixed=TRUE)
-		i<-i+1	
-	}
-	# Fixes residue numbers 
-	
-	residue.numbers<-as.numeric(x$atom[,6])
-	
-	if(x$atom[1,4]!="MET")
-	{
-		residue.numbers<-residue.numbers+1
-	}
-	if(x$atom[1,4]!=seq[residue.numbers[1]])
-	{
-		residue.numbers<-residue.numbers-residue.numbers[1]+1
-	}
-	
 	# Generates mutation codes for primerX
-	one.letter.aminoacid.match<-aminoacid.match2
-	one.letter.aminoacid.match<-gsub("CYS-","C",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("ALA-","A",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("ILE-","I",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("LEU-","L",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("PHE-","F",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("MET-","M",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("TRP-","W",one.letter.aminoacid.match,fixed=TRUE)
-	one.letter.aminoacid.match<-gsub("VAL-","V",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-primer.aminoacid.match
+	one.letter.aminoacid.match<-sub("CYS-","C",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("ALA-","A",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("ILE-","I",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("LEU-","L",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("PHE-","F",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("MET-","M",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("TRP-","W",one.letter.aminoacid.match,fixed=TRUE)
+	one.letter.aminoacid.match<-sub("VAL-","V",one.letter.aminoacid.match,fixed=TRUE)
 
 	mutation.codes<-character()
 	mutation.codes<-paste(one.letter.aminoacid.match,"R",sep="")

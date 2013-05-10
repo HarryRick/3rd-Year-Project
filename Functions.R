@@ -139,3 +139,18 @@ hydrophobic.3to1.translate<-function(x)
 
 	return(x)
 }
+
+
+seq.split<-function(x)
+	
+{
+	seq.as.character<-character()
+	i<-1
+	while(i<=nchar(x))
+	{
+		seq.as.character[i]<-substring(seq,i,i)	
+		i<-i+1
+	}
+
+return(seq.as.character)
+}

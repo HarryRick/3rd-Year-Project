@@ -355,7 +355,6 @@ while(master.i<=length(sig.pdb.ids))
 	}
 	
 	primer.residue.no.store<-unique(primer.residue.no.store)
-	primer.residue.no.store<-toString(primer.residue.no.store)
 	primer.aminoacid.match<-unique(primer.atom.aminoacid.match)
 	print(aminoacid.match)
 	
@@ -386,6 +385,19 @@ while(master.i<=length(sig.pdb.ids))
 
 	mutation.codes<-character()
 	mutation.codes<-paste(one.letter.aminoacid.match,"R",sep="")
+
+
+	# Gnerates new_AA_sequence (because parsing is difficult in this instance)
+	i<-1
+	new.seq.store<-string()
+	while(i<=length(primer.residue.no.store))
+	{
+		new.seq.store[i]<-seq.as.character
+		new.seq.store[i]<-sub(new.seq.store,new.seq.store[primer.residue.no.store[[i]]],"R",fixed=TRUE)
+		i<-i+1
+	}
+	
+
 		
 	i<-1
 	primer.finder<-postForm("http://www.bioinformatics.org/primerx/cgi-bin/protein_3.cgi",
@@ -395,6 +407,8 @@ while(master.i<=length(sig.pdb.ids))
 	code=mutation.codes[i],
 	protocol="basic",
 	Next="Next")
+	parsed.primer.finder<-htmlTreeParse(primer.finder)
+
 	
 	master.i<-master.i+1
 	

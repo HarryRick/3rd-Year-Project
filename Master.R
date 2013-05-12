@@ -5,7 +5,8 @@ require(bio3d)
 require(RCurl)
 require(XML)
 require(Biostrings)
-source(file="functions.r")
+require(rpanel)
+source(file="Functions.r")
 
 sig.pdb.ids<-""
 
@@ -111,7 +112,7 @@ while(master.i<=length(sig.pdb.ids))
 	p<-as.numeric(x$atom[1,6])-1
 	while(i<=150)
 	{
-		if(x$atom[i,6]>p)
+		if(as.numeric(x$atom[i,6])>p)
 		{
 			if(x$atom[i,4]!=three.letter.seq[residue.numbers[p]])
 			{	
@@ -224,73 +225,64 @@ while(master.i<=length(sig.pdb.ids))
 	while (j<=length(One.xhydro))
 	  
 	{
-	  x1<-One.xhydro[j]
-	  y1<-One.yhydro[j]
-	  z1<-One.zhydro[j]
-	  
-	  
-	  proximity.store<-numeric(0)
-	  
-	  # Calculates distance between residues - if these residues are less than 5 A apart then their coordinates are stored in residue.match.store. 
-	  # While i is less than or equal to the total number of positional data points all but the first chain, the distance between the residues is calculated
-	  i<-1
-	  
-	  while (i<=length(x.hydro))
-	  {
-	    #Calculates distance between residues
-	    proximity<-(((x1-x.hydro[i])^2)+((y1-y.hydro[i])^2)+((z1-z.hydro[i])^2))^0.5
-	    #If distance < 4.5
-	    if (proximity < 4.5)
-	    {
-	      
-	      
-	      # residue contains each atom closer than 4 angstroms apart and what chain they are on.
-	      # Which residue has a hydrophobic interaction
-	      residue<-paste(c(new.chain.store[one][hydrophobesr1][j],"-",x$atom[,6][one][hydrophobesr1][j]),collapse="")
-	      residue.match<-grep(pattern=TRUE,x=residue==reference.ids)
-	      
-	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
-	      residue.match.store<-c(residue.match.store,residue.match)
-	      residue.match.store<-unique(residue.match.store)
-		
-	      # this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
-	      interface.x<-x$atom[,8][residue.match.store]
-	      interface.y<-x$atom[,9][residue.match.store]
-	      interface.z<-x$atom[,10][residue.match.store]
-	      plot3d(x=interface.x,y=interface.y,z=interface.z,col=3,box=FALSE)
-	      
-	      # Find partner
-	      residue2<-paste(c(new.chain.store[-one][hydrophobesr][i],"-",x$atom[,6][-one][hydrophobesr][i]),collapse="")
-	      residue.match2<-grep(pattern=TRUE,x=residue2==reference.ids)
-	      
-	      # residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
-	      residue.match.store2<-c(residue.match.store2,residue.match2)
-	      residue.match.store2<-unique(residue.match.store2)
-	      
-	      # this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
-	      interface.x2<-x$atom[,8][residue.match.store2]
-	      interface.y2<-x$atom[,9][residue.match.store2]
-	      interface.z2<-x$atom[,10][residue.match.store2]
-	      plot3d(x=interface.x2,y=interface.y2,z=interface.z2,col=2,box=FALSE,add=TRUE)
-	      print(proximity)
-	      
-	      
-	    }
-	    i<-i+1
-	  }
-	  
-	  j<-j+1
+		x1<-One.xhydro[j]
+		y1<-One.yhydro[j]
+		z1<-One.zhydro[j]
+
+
+		proximity.store<-numeric(0)
+
+		# Calculates distance between residues - if these residues are less than 5 A apart then their coordinates are stored in residue.match.store. 
+		# While i is less than or equal to the total number of positional data points all but the first chain, the distance between the residues is calculated
+		i<-1
+
+		while (i<=length(x.hydro))
+		{
+			#Calculates distance between residues
+			proximity<-(((x1-x.hydro[i])^2)+((y1-y.hydro[i])^2)+((z1-z.hydro[i])^2))^0.5
+			#If distance < 4.5
+			if (proximity < 4.5)
+			{
+				# residue contains each atom closer than 4 angstroms apart and what chain they are on.
+				# Which residue has a hydrophobic interaction
+				residue<-paste(c(new.chain.store[one][hydrophobesr1][j],"-",x$atom[,6][one][hydrophobesr1][j]),collapse="")
+				residue.match<-grep(pattern=TRUE,x=residue==reference.ids)
+
+				# residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
+				residue.match.store<-c(residue.match.store,residue.match)
+				residue.match.store<-unique(residue.match.store)
+
+				# this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
+				interface.x<-x$atom[,8][residue.match.store]
+				interface.y<-x$atom[,9][residue.match.store]
+				interface.z<-x$atom[,10][residue.match.store]
+				plot3d(x=interface.x,y=interface.y,z=interface.z,col=3,box=FALSE)
+
+				# Find partner
+				residue2<-paste(c(new.chain.store[-one][hydrophobesr][i],"-",x$atom[,6][-one][hydrophobesr][i]),collapse="")
+				residue.match2<-grep(pattern=TRUE,x=residue2==reference.ids)
+
+				# residue.match.store combines the data from residue and residue.match and eliminates any duplicate values.
+				residue.match.store2<-c(residue.match.store2,residue.match2)
+				residue.match.store2<-unique(residue.match.store2)
+
+				# this gives us all the spatial data points for each atom within 5 angstroms of one another so that they may be plotted in space
+				interface.x2<-x$atom[,8][residue.match.store2]
+				interface.y2<-x$atom[,9][residue.match.store2]
+				interface.z2<-x$atom[,10][residue.match.store2]
+				plot3d(x=interface.x2,y=interface.y2,z=interface.z2,col=2,box=FALSE,add=TRUE)
+				print(proximity)
+			}
+		i<-i+1
+		}
+
+		j<-j+1
 	}
-	
-	
-	
-	
+
 	interface.x<-as.numeric(interface.x)
 	interface.y<-as.numeric(interface.y)
 	interface.z<-as.numeric(interface.z)
-	
-	
-	
+
 	chain.match<-new.chain.store[residue.match.store]
 	
 	#total spatial points for first chain
@@ -301,8 +293,6 @@ while(master.i<=length(sig.pdb.ids))
 	#Adds all atoms to the 3d plot - can see where hydrophobic amino acids are in relation to non hydrophobic ones.
 	points3d(x=onexval,y=oneyval,z=onezval,col="blue",box=FALSE,axes=FALSE)
 
-
-
 	#Gives list of hydrophobic amino acids on first chain < 5 angstroms from another hydrophobic amino acid on a different chain
 	
 	atom.aminoacid.match<-numeric(0)
@@ -310,9 +300,9 @@ while(master.i<=length(sig.pdb.ids))
 	p<-1
 	while(p<=length(residue.match.store))
 	{
-	  residue.no.store<-c(residue.no.store,x$atom[residue.match.store,6])
-	  atom.aminoacid.match<-c(atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",x$atom[residue.match.store,6][p]),collapse=""))
-	  p<-p+1
+		residue.no.store<-c(residue.no.store,x$atom[residue.match.store,6])
+		atom.aminoacid.match<-c(atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",x$atom[residue.match.store,6][p]),collapse=""))
+		p<-p+1
 	}
 	
 	residue.no.store<-unique(residue.no.store)
@@ -328,11 +318,10 @@ while(master.i<=length(sig.pdb.ids))
 	while(p2<=length(residue.match.store2))
 	  
 	{
-	  residue.no.store2<-c(residue.no.store2,x$atom[residue.match.store2,6])
-	  atom.aminoacid.match2<-c(atom.aminoacid.match2,paste(c(x$atom[residue.match.store2,4][p2],"-",x$atom[residue.match.store2,6][p2]),collapse=""))
-	  
-	  p2<-p2+1
-	  
+		residue.no.store2<-c(residue.no.store2,x$atom[residue.match.store2,6])
+		atom.aminoacid.match2<-c(atom.aminoacid.match2,paste(c(x$atom[residue.match.store2,4][p2],"-",x$atom[residue.match.store2,6][p2]),collapse=""))
+
+		p2<-p2+1
 	}
 	
 	residue.no.store2<-unique(residue.no.store2)
@@ -349,9 +338,9 @@ while(master.i<=length(sig.pdb.ids))
 	p<-1
 	while(p<=length(residue.match.store))
 	{
-	  primer.residue.no.store<-c(primer.residue.no.store,residue.numbers[residue.match.store])
-	  primer.atom.aminoacid.match<-c(primer.atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",residue.numbers[residue.match.store][p]),collapse=""))
-	  p<-p+1
+		primer.residue.no.store<-c(primer.residue.no.store,residue.numbers[residue.match.store])
+		primer.atom.aminoacid.match<-c(primer.atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",residue.numbers[residue.match.store][p]),collapse=""))
+		p<-p+1
 	}
 	
 	primer.residue.no.store<-unique(primer.residue.no.store)
@@ -387,28 +376,45 @@ while(master.i<=length(sig.pdb.ids))
 	mutation.codes<-paste(one.letter.aminoacid.match,"R",sep="")
 
 
-	# Gnerates new_AA_sequence (because parsing is difficult in this instance)
+	# Generates new_AA_sequence (because parsing is difficult in this instance)
 	i<-1
-	new.seq.store<-string()
+	new.seq.store<-rep(seq,length(primer.residue.no.store))
 	while(i<=length(primer.residue.no.store))
 	{
-		new.seq.store[i]<-seq.as.character
-		new.seq.store[i]<-sub(new.seq.store,new.seq.store[primer.residue.no.store[[i]]],"R",fixed=TRUE)
+		substr(new.seq.store[i],primer.residue.no.store[i],primer.residue.no.store[i])<-"R"
 		i<-i+1
 	}
 	
 
 		
 	i<-1
-	primer.finder<-postForm("http://www.bioinformatics.org/primerx/cgi-bin/protein_3.cgi",
-	orig_DNA_sequence=dna.seq,
-	chopped_DNA_sequence="",
-	orig_AA_sequence=seq,
-	code=mutation.codes[i],
-	protocol="basic",
-	Next="Next")
-	parsed.primer.finder<-htmlTreeParse(primer.finder)
-
+	while(i<=length(mutation.codes))
+	{
+		primer.finder<-postForm("http://www.bioinformatics.org/primerx/cgi-bin/protein_4.cgi",
+		orig_DNA_sequence=dna.seq,
+		chopped_DNA_sequence="",
+		new_AA_sequence=new.seq.store[i],
+		species="Escherichia coli",
+		"min_Tm"="70",
+		"max_Tm"="90",
+		min_GC="40",
+		max_GC="60",
+		min_length="25",
+		max_length="45",
+		min_5p_flank="11",
+		max_5p_flank="21",
+		min_3p_flank="11",
+		max_3p_flank="21",
+		ends_in_GC="on",
+		mut_at_center="on",
+		primer_type="complementary",
+		"Generate primers"="Generate primers",
+		protocol="Basic")
+		
+		primer.html.file.name<-sub("___",mutation.codes[i],"___ mutagenesis primers.html")
+		write(primer.finder,file=primer.html.file.name)
+		i<-i+1
+	}
 	
 	master.i<-master.i+1
 	

@@ -257,6 +257,7 @@ if(nchar(sig.pdb.ids)==0)
 	blast.align.length<-numeric()
 	blast.identity<-numeric()
 	blast.positive<-numeric()
+	blast.hit.length<-numeric()
 	ids<-character()
 	i<-1
 	while(i<=xmlSize(blast.hits))
@@ -265,12 +266,14 @@ if(nchar(sig.pdb.ids)==0)
 		blast.scores[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_score"]])
 		blast.align.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_align-len"]])
 		blast.positive[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_positive"]])
+		blast.hit.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_len"]])
 		i<-i+1 
 	}
 	blast.scores<-as.numeric(blast.scores)
 	blast.align.length<-as.numeric(blast.align.length)
 	blast.positive<-as.numeric(blast.positive)
 	percentage.hits<-(blast.positive/blast.align.length)*100
+	blast.hit.length<-as.numeric(blast.hit.length)
 
 	ids1<-strsplit(ids,"|",fixed=TRUE)
 
@@ -289,10 +292,14 @@ if(nchar(sig.pdb.ids)==0)
 
 	sig.pdb.ids<-character()
 	i<-1
-	while(blast.scores[i] >= 200)
+	while(percentage.hits[i] >= 95)
 	{
-		sig.pdb.ids[i]<-pdb.ids[i]
-		i<-i+1
+		if(((nchar(seq)-1)-blast.hit.length[i])<=5&blast.hit.length[i]-(nchar(seq)-1)<=5)
+		{
+			sig.pdb.ids[i]<-pdb.ids[i]
+		}
+	
+	i<-i+1
 	}
 }
 	
@@ -341,9 +348,13 @@ master.i<-1
 
 
 	###### Check that structure has correct x$atom[,5] formatting and if not correct ###### 
-
+	# Find and store correct chain names. j is an index with x$atom[i,1]. Since x$atom[i,1] resets when there is
+	# a new chain in the pdb file, j will no longer equal x$atom[i,1]. This triggers p to increase and j to be set
+	# as equal to x$atom[i,1]. p acts as an index for the chain library which contains all the letters of the 
+	# alphabet. Since p only increases when x$atom[i,1] resets, p can be used to create a new library containing 
+	# the correct chain identifiers.
 	chain.lib<-toupper(paste(letters[1:26]))
-	# Find and store correct chain names 
+
 	new.chain.store<-character()
 	n<-length(x$atom[,1])
 	i<-1

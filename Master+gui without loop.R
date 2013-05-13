@@ -26,6 +26,12 @@ but<-gbutton("Proceed",container=button,handler=function(h,...)
 	{
 		gmessage("Please enter DNA sequence!",title="Error!")
 	}
+	else
+	{	svalue(text)<<-toupper(svalue(text))
+		if(grepl(" ",svalue(text))==FALSE,fixed=TRUE)
+	{
+		gmessage("Please ensure there are no spaces in your DNA sequence",title="Error!")
+	}
 	else if(grepl("^[ATCG]+$",svalue(text))==FALSE)
 	{
 		gmessage("Please enter a valid DNA sequence!",title="Error!")
@@ -84,18 +90,18 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 	main<-ggroup(horizontal=FALSE,container=custom,spacing=15)
 	species.frame<-gframe(horizontal=TRUE,container=main,spacing=10)
 	lab1<-glabel("Expression system:",container=species.frame)
-	species.drop<-gdroplist(species.list,container=species.frame,handler=function(h,...)
+	species.drop<-gdroplist(species.list,selected=13,container=species.frame,handler=function(h,...)
 	{
 		species<<-svalue(species.drop)
 	})
 	
 	Tm.frame<-gframe(horizontal=TRUE,container=main,spacing=10)
 	lab2<-glabel("Minimum melting temperature (ºC):",container=Tm.frame)
-	min.temp<-gtext(width=50,height=15,container=Tm.frame,handler=function(h,...)
+	min.temp<-gtext("70",width=50,height=15,container=Tm.frame,handler=function(h,...)
 	{
 		min_Tm<<-svalue(min.temp)
 	})
-	max.temp<-gtext(width=50,height=15,container=Tm.frame,handler=function(h,...)
+	max.temp<-gtext("90",width=50,height=15,container=Tm.frame,handler=function(h,...)
 	{
 		max_Tm<<-svalue(max.temp)
 	})
@@ -103,11 +109,11 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 	
 	gc.frame<-gframe(container=main,spacing=10)
 	lab4<-glabel("              Minimum GC content (%):",container=gc.frame)
-	min.gc<-gtext(width=50,height=15,container=gc.frame,handler=function(h,...)
+	min.gc<-gtext("40",width=50,height=15,container=gc.frame,handler=function(h,...)
 	{
 		min_GC<<-svalue(min.gc)
 	})
-	max.gc<-gtext(width=50,height=15,container=gc.frame,handler=function(h,...)
+	max.gc<-gtext("60",width=50,height=15,container=gc.frame,handler=function(h,...)
 	{
 		max_GC<<-svalue(max.gc)
 	})	
@@ -115,11 +121,11 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 	
 	length.frame<-gframe(container=main,spacing=10)
 	lab4<-glabel("                      Minimum length (bp):",container=length.frame)
-	min.length<-gtext(width=50,height=15,container=length.frame,handler=function(h,...)
+	min.length<-"25",gtext(width=50,height=15,container=length.frame,handler=function(h,...)
 	{
 		min_length<<-svalue(min.length)
 	})
-	max.length<-gtext(width=50,height=15,container=length.frame,handler=function(h,...)
+	max.length<-gtext("45",width=50,height=15,container=length.frame,handler=function(h,...)
 	{
 		max_length<<-svalue(max.length)
 	})
@@ -127,11 +133,11 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 	
 	five.flank.frame<-gframe(container=main,spacing=10)
 	lab4<-glabel("     Minimum 5\'\ flanking region (bp):",container=five.flank.frame)
-	min.five.flank<-gtext(width=50,height=15,container=five.flank.frame,handler=function(h,...)
+	min.five.flank<-gtext("11",width=50,height=15,container=five.flank.frame,handler=function(h,...)
 	{
 		min_5p_flank<<-svalue(min.five.flank)
 	})
-	max.five.flank<-gtext(width=50,height=15,container=five.flank.frame,handler=function(h,...)
+	max.five.flank<-gtext("21",width=50,height=15,container=five.flank.frame,handler=function(h,...)
 	{
 		max_5p_flank<<-svalue(max.five.flank)
 	})
@@ -139,11 +145,11 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 
 	three.flank.frame<-gframe(container=main,spacing=10)
 	lab5<-glabel("     Minimum 3\'\ flanking region (bp):",container=three.flank.frame)
-	min.three.flank<-gtext(width=50,height=15,container=three.flank.frame,handler=function(h,...)
+	min.three.flank<-gtext("11",width=50,height=15,container=three.flank.frame,handler=function(h,...)
 	{
 		min_3p_flank<<-svalue(min.three.flank)
 	})
-	max.three.flank<-gtext(width=50,height=15,container=three.flank.frame,handler=function(h,...)
+	max.three.flank<-gtext("21",width=50,height=15,container=three.flank.frame,handler=function(h,...)
 	{
 		max_3p_flank<<-svalue(max.three.flank)
 	})
@@ -248,15 +254,23 @@ if(nchar(sig.pdb.ids)==0)
 
 	blast.hits<-xmlRoot(xml.data)[["BlastOutput_iterations"]][["Iteration"]][["Iteration_hits"]]
 	blast.scores<-numeric()
+	blast.align.length<-numeric()
+	blast.identity<-numeric()
+	blast.positive<-numeric()
 	ids<-character()
 	i<-1
 	while(i<=xmlSize(blast.hits))
 	{
 		ids[[i]] <- xmlValue(blast.hits[[i]][["Hit_id"]])
 		blast.scores[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_score"]])
+		blast.align.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_align-len"]])
+		blast.positive[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_positive"]])
 		i<-i+1 
 	}
 	blast.scores<-as.numeric(blast.scores)
+	blast.align.length<-as.numeric(blast.align.length)
+	blast.positive<-as.numeric(blast.positive)
+	percentage.hits<-(blast.positive/blast.align.length)*100
 
 	ids1<-strsplit(ids,"|",fixed=TRUE)
 

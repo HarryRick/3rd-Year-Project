@@ -1,5 +1,7 @@
+require("gWidgets")
+options("guiToolkit"="RGtk2")
 
-dialog<-gbasicdialog("Select DNA Sequence input",do.buttons=FALSE)
+dialog<-gbasicdialog("Select DNA Sequence input",do.buttons=FALSE,guiToolkit="RGtk2")
 win1<-gframe(Horizontal=TRUE,container=dialog,spacing=20)
 space<-glabel("",container=win1,spacing=0)
 textframe<-ggroup(horizontal=TRUE,container=win1,spacing=0,pos=0)

@@ -6,6 +6,8 @@ require(RCurl)
 require(XML)
 require(Biostrings)
 require(gWidgets)
+options("guiToolkit"="RGtk2")
+
 source(file="Functions.r")
 
 sig.pdb.ids<-""
@@ -53,7 +55,7 @@ discoideum","Drosophila melanogaster","Equus caballus","Escherichia coli","Felis
 "Xenopus laevis","Zea mays")
 primer.type<<-c("Complementary","Overlapping")
 
-default.primer.question<-gbasicdialog("Select primer conditions",do.buttons=FALSE)
+default.primer.question<-gbasicdialog("Select primer conditions",do.buttons=FALSE,guiToolkit="RGtk2")
 but.frame<-gframe(horizontal=FALSE,container=default.primer.question,spacing=20)
 label<-glabel("Please select whether you would like to use default settings for 
 primer creation or whether you would like to specify your own",container=but.frame)

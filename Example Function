@@ -1,8 +1,0 @@
-add<-function(number1, number2)
-{
-result<-list(number1+number2,number1+number2)
-}
-
-number1=1
-number2=2
-result<-add(number1,number2)

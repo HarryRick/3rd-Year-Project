@@ -1,0 +1,8 @@
+require(gWidgets)
+obj = gcommandline(container=TRUE)#
+svalue(obj) <- "2+2"#
+## assign to x#
+command = "rnorm(100)"; names(command) = "x"#
+svalue(obj) <- command#
+## look at history#
+obj[]

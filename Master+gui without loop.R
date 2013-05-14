@@ -19,18 +19,15 @@ textframe<-ggroup(horizontal=TRUE,container=win1,spacing=0,pos=0)
 button<-ggroup(horizontal=TRUE,container=win1,spacing=25,pos=1)
 win2<-gframe(horizontal=TRUE,container=dialog,spacing=20)
 text<-gtext("Enter the DNA sequence of your protein here",
-container=textframe,wrap=TRUE,width=425,height=50)
-but<-gbutton("Proceed",container=button,handler=function(h,...)
-{	
+container=textframe,wrap=TRUE,width=425,height=50,handler=function(h,...)
+{	svalue(text)<<-toupper(svalue(text))
+})
+but<-gbutton("ok",container=button,handler=function(h,...)
+{		
+	svalue(text)<<-gsub("\\s","",svalue(text))
 	if(svalue(text)=="")
 	{
 		gmessage("Please enter DNA sequence!",title="Error!")
-	}
-	else
-	{	svalue(text)<<-toupper(svalue(text))
-		if(grepl(" ",svalue(text))==FALSE,fixed=TRUE)
-	{
-		gmessage("Please ensure there are no spaces in your DNA sequence",title="Error!")
 	}
 	else if(grepl("^[ATCG]+$",svalue(text))==FALSE)
 	{
@@ -90,66 +87,66 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 	main<-ggroup(horizontal=FALSE,container=custom,spacing=15)
 	species.frame<-gframe(horizontal=TRUE,container=main,spacing=10)
 	lab1<-glabel("Expression system:",container=species.frame)
-	species.drop<-gdroplist(species.list,selected=13,container=species.frame,handler=function(h,...)
+	species.drop<-gdroplist(species.list,selected=12,container=species.frame,handler=function(h,...)
 	{
 		species<<-svalue(species.drop)
 	})
 	
-	Tm.frame<-gframe(horizontal=TRUE,container=main,spacing=10)
+	Tm.frame<-ggroup(horizontal=TRUE,container=main,spacing=10)
 	lab2<-glabel("Minimum melting temperature (ºC):",container=Tm.frame)
-	min.temp<-gtext("70",width=50,height=15,container=Tm.frame,handler=function(h,...)
+	min.temp<-gtext("70",width=55,height=15,container=Tm.frame,handler=function(h,...)
 	{
 		min_Tm<<-svalue(min.temp)
 	})
-	max.temp<-gtext("90",width=50,height=15,container=Tm.frame,handler=function(h,...)
+	max.temp<-gtext("90",width=55,height=15,container=Tm.frame,handler=function(h,...)
 	{
 		max_Tm<<-svalue(max.temp)
 	})
 	lab3<-glabel("Maximum melting temperature (ºC)",container=Tm.frame)
 	
-	gc.frame<-gframe(container=main,spacing=10)
-	lab4<-glabel("              Minimum GC content (%):",container=gc.frame)
-	min.gc<-gtext("40",width=50,height=15,container=gc.frame,handler=function(h,...)
+	gc.frame<-ggroup(container=main,spacing=10)
+	lab4<-glabel("               Minimum GC content (%):",container=gc.frame)
+	min.gc<-gtext("40",width=55,height=15,container=gc.frame,handler=function(h,...)
 	{
 		min_GC<<-svalue(min.gc)
 	})
-	max.gc<-gtext("60",width=50,height=15,container=gc.frame,handler=function(h,...)
+	max.gc<-gtext("60",width=55,height=15,container=gc.frame,handler=function(h,...)
 	{
 		max_GC<<-svalue(max.gc)
 	})	
 	lab5<-glabel("Maximum GC content (%)",container=gc.frame)
 	
-	length.frame<-gframe(container=main,spacing=10)
+	length.frame<-ggroup(container=main,spacing=10)
 	lab4<-glabel("                      Minimum length (bp):",container=length.frame)
-	min.length<-"25",gtext(width=50,height=15,container=length.frame,handler=function(h,...)
+	min.length<<-gtext("25",width=55,height=15,container=length.frame,handler=function(h,...)
 	{
 		min_length<<-svalue(min.length)
 	})
-	max.length<-gtext("45",width=50,height=15,container=length.frame,handler=function(h,...)
+	max.length<-gtext("45",width=55,height=15,container=length.frame,handler=function(h,...)
 	{
 		max_length<<-svalue(max.length)
 	})
 	lab5<-glabel("Maximum length (bp)",container=length.frame)
 	
-	five.flank.frame<-gframe(container=main,spacing=10)
+	five.flank.frame<-ggroup(container=main,spacing=10)
 	lab4<-glabel("     Minimum 5\'\ flanking region (bp):",container=five.flank.frame)
-	min.five.flank<-gtext("11",width=50,height=15,container=five.flank.frame,handler=function(h,...)
+	min.five.flank<-gtext("11",width=55,height=15,container=five.flank.frame,handler=function(h,...)
 	{
 		min_5p_flank<<-svalue(min.five.flank)
 	})
-	max.five.flank<-gtext("21",width=50,height=15,container=five.flank.frame,handler=function(h,...)
+	max.five.flank<-gtext("21",width=55,height=15,container=five.flank.frame,handler=function(h,...)
 	{
 		max_5p_flank<<-svalue(max.five.flank)
 	})
 	lab5<-glabel("Maximum 5' flanking region (bp)",container=five.flank.frame)
 
-	three.flank.frame<-gframe(container=main,spacing=10)
+	three.flank.frame<-ggroup(container=main,spacing=10)
 	lab5<-glabel("     Minimum 3\'\ flanking region (bp):",container=three.flank.frame)
-	min.three.flank<-gtext("11",width=50,height=15,container=three.flank.frame,handler=function(h,...)
+	min.three.flank<-gtext("11",width=55,height=15,container=three.flank.frame,handler=function(h,...)
 	{
 		min_3p_flank<<-svalue(min.three.flank)
 	})
-	max.three.flank<-gtext("21",width=50,height=15,container=three.flank.frame,handler=function(h,...)
+	max.three.flank<-gtext("21",width=55,height=15,container=three.flank.frame,handler=function(h,...)
 	{
 		max_3p_flank<<-svalue(max.three.flank)
 	})

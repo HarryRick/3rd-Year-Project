@@ -12,6 +12,7 @@ source(file="Functions.r")
 
 sig.pdb.ids<-""
 
+# Creates Dialog box for entering DNA sequence
 dialog<-gbasicdialog("Select DNA Sequence input",do.buttons=FALSE)
 win1<-gframe(Horizontal=TRUE,container=dialog,spacing=20)
 space<-glabel("",container=win1,spacing=0)
@@ -20,18 +21,20 @@ button<-ggroup(horizontal=TRUE,container=win1,spacing=25,pos=1)
 win2<-gframe(horizontal=TRUE,container=dialog,spacing=20)
 text<-gtext("Enter the DNA sequence of your protein here",
 container=textframe,wrap=TRUE,width=425,height=50,handler=function(h,...)
-{	svalue(text)<<-toupper(svalue(text))
+{	svalue(text)<<-toupper(svalue(text)) 
+# Automatically updates any lower case sequence to upper case
 })
 but<-gbutton("ok",container=button,handler=function(h,...)
 {		
-	svalue(text)<<-gsub("\\s","",svalue(text))
+	svalue(text)<<-gsub("\\s","",svalue(text)) #Removes any spaces from the sequence
 	if(svalue(text)=="")
 	{
-		gmessage("Please enter DNA sequence!",title="Error!")
+		gmessage("Please enter DNA sequence!",title="Error!") # returns error if nothing in text box
 	}
 	else if(grepl("^[ATCG]+$",svalue(text))==FALSE)
 	{
-		gmessage("Please enter a valid DNA sequence!",title="Error!")
+		gmessage("Please enter a valid DNA sequence!",title="Error!") 
+		# Returns error if any letters other than ATCG are entered
 	}
 	else 
 	{
@@ -57,7 +60,8 @@ discoideum","Drosophila melanogaster","Equus caballus","Escherichia coli","Felis
 "Saccharomyces cerevisiae","Schizosaccharomyces pombe","Sus scrofa domestica","Takifugu rubripes",
 "Xenopus laevis","Zea mays")
 primer.type<<-c("Complementary","Overlapping")
-
+# Creates dialog which allows user to select primer conditions - either default or can enter their
+# own.
 default.primer.question<-gbasicdialog("Select primer conditions",do.buttons=FALSE,guiToolkit="RGtk2")
 but.frame<-gframe(horizontal=FALSE,container=default.primer.question,spacing=20)
 label<-glabel("Please select whether you would like to use default settings for 
@@ -209,102 +213,95 @@ but2<-gbutton("Custom",container=but.frame,handle=function(h,...)
 	visible(default.primer.question,TRUE)
 
 
+# BLAST search of pdb database and use top result from this as input to rest of script
+dna.string<-DNAString(dna.seq)
+prot.seq<-translate(dna.string)
+seq<-as.character(prot.seq)
 
+a<-postForm("http://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&BLAST_PROGRAMS=blastp&DATABASE=pdb&PAGE_TYPE=BlastSearch&SHOW_DEFAULTS=on&BLAST_SPEC=&LINK_LOC=blasttab&LAST_PAGE=blastp&CMD=PUT",QUERY=seq,.cgifields =c("BLAST"))
 
-# Checks if pdb.id has been entered, if it hasn't, use sequence blast data.
-if(nchar(sig.pdb.ids)==0)
+# Extract the RID
+RIDa<-strsplit(x=a,split="RID")[[1]][6]
+RIDb<-strsplit(x=RIDa,split="value=\"")[[1]][2]
+RIDc<-strsplit(x=RIDb,split="\"")[[1]]
+RIDd<-RIDc[1]
 
+# Define the URL where the results can be found
+Search.output<-"http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?RESULTS_FILE=on&RID=XXX&FORMAT_TYPE=XML&FORMAT_OBJECT=Alignment&ALIGNMENTS=100&CMD=Get"
+
+# Enter the RID into the URL
+NewDestination<-gsub("XXX",RIDd,Search.output)
+
+# Read the results into R
+fetched.data<-readLines(NewDestination)
+not.finished<-grep(x=fetched.data,pattern="waiting",ignore.case=TRUE)
+
+while(length(not.finished)>0)
 {
-	# Add BLAST search of pdb database and use top result from this as input to rest of script
-	dna.seq<-"ATGTCTAGCCAAATTCGCCAGAATTACAGCACCGACGTTGAAGCGGCAGTCAACAGCCTGGTTAATCTGTACTTGCAGGCCAGCTATACGTATCTGAGCCTGGGCTTTTACTTTGACCGCGACGATGTGGCCTTGGAAGGCGTGAGCCACTTTTTCCGTGAGCTGGCGGAAGAGAAACGCGAAGGCTATGAGCGCCTGCTGAAAATGCAGAACCAACGTGGCGGTCGTGCTCTGTTCCAAGACATCAAGAAACCGGCGGAAGATGAGTGGGGTAAAACCCCGGATGCGATGAAGGCCGCAATGGCTTTGGAGAAGAAACTGAATCAGGCACTGCTGGATCTGCACGCGCTGGGTTCCGCACGTACCGACCCGCACCTGTGCGATTTCTTGGAAACGCATTTTCTGGACGAAGAGGTCAAGCTGATCAAGAAAATGGGCGACCACCTGACGAACTTGCATCGTCTGGGTGGTCCAGAGGCGGGTCTGGGTGAGTACCTGTTCGAGCGTCTGACTCTGAAGCATGATCCCGGG"
-	dna.string<-DNAString(dna.seq)
-	prot.seq<-translate(dna.string)
-	seq<-as.character(prot.seq)
-
-	a<-postForm("http://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&BLAST_PROGRAMS=blastp&DATABASE=pdb&PAGE_TYPE=BlastSearch&SHOW_DEFAULTS=on&BLAST_SPEC=&LINK_LOC=blasttab&LAST_PAGE=blastp&CMD=PUT",QUERY=seq,.cgifields =c("BLAST"))
-
-	# Extract the RID
-	RIDa<-strsplit(x=a,split="RID")[[1]][6]
-	RIDb<-strsplit(x=RIDa,split="value=\"")[[1]][2]
-	RIDc<-strsplit(x=RIDb,split="\"")[[1]]
-	RIDd<-RIDc[1]
-
-	# Define the URL where the results can be found
-	Search.output<-"http://www.ncbi.nlm.nih.gov/blast/Blast.cgi?RESULTS_FILE=on&RID=XXX&FORMAT_TYPE=XML&FORMAT_OBJECT=Alignment&ALIGNMENTS=100&CMD=Get"
-
-	# Enter the RID into the URL
-	NewDestination<-gsub("XXX",RIDd,Search.output)
-
-	# Read the results into R
 	fetched.data<-readLines(NewDestination)
 	not.finished<-grep(x=fetched.data,pattern="waiting",ignore.case=TRUE)
-
-	while(length(not.finished)>0)
-	{
-		fetched.data<-readLines(NewDestination)
-		not.finished<-grep(x=fetched.data,pattern="waiting",ignore.case=TRUE)
-	}
-
-	xml.data<-xmlTreeParse(fetched.data)
-
-	#Parsing of data (XML)
-
-	blast.hits<-xmlRoot(xml.data)[["BlastOutput_iterations"]][["Iteration"]][["Iteration_hits"]]
-	blast.scores<-numeric()
-	blast.align.length<-numeric()
-	blast.identity<-numeric()
-	blast.positive<-numeric()
-	blast.hit.length<-numeric()
-	ids<-character()
-	i<-1
-	while(i<=xmlSize(blast.hits))
-	{
-		ids[[i]] <- xmlValue(blast.hits[[i]][["Hit_id"]])
-		blast.scores[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_score"]])
-		blast.align.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_align-len"]])
-		blast.positive[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_positive"]])
-		blast.hit.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_len"]])
-		i<-i+1 
-	}
-	blast.scores<-as.numeric(blast.scores)
-	blast.align.length<-as.numeric(blast.align.length)
-	blast.positive<-as.numeric(blast.positive)
-	percentage.hits<-(blast.positive/blast.align.length)*100
-	blast.hit.length<-as.numeric(blast.hit.length)
-
-	ids1<-strsplit(ids,"|",fixed=TRUE)
-
-	i<-1
-	pdb.ids<-character()
-	while(i<=xmlSize(blast.hits))
-	{
-		pdb.ids[[i]]<-ids1[[i]][[4]]
-		i<-i+1
-	}
-
-	blast.results<-data.frame(pdb.ids,blast.scores)
-
-
-	#Selecting statistically significant proteins for analysis
-
-	sig.pdb.ids<-character()
-	i<-1
-	while(percentage.hits[i] >= 95)
-	{
-		if(((nchar(seq)-1)-blast.hit.length[i])<=5&blast.hit.length[i]-(nchar(seq)-1)<=5)
-		{
-			sig.pdb.ids[i]<-pdb.ids[i]
-		}
-	
-	i<-i+1
-	}
 }
-	
+
+xml.data<-xmlTreeParse(fetched.data)
+
+#Parsing of data (XML)
+
+blast.hits<-xmlRoot(xml.data)[["BlastOutput_iterations"]][["Iteration"]][["Iteration_hits"]]
+blast.scores<-numeric()
+blast.align.length<-numeric()
+blast.identity<-numeric()
+blast.positive<-numeric()
+blast.hit.length<-numeric()
+ids<-character()
+i<-1
+while(i<=xmlSize(blast.hits))
+{
+	ids[[i]] <- xmlValue(blast.hits[[i]][["Hit_id"]])
+	blast.scores[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_score"]])
+	blast.align.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_align-len"]])
+	blast.positive[[i]]<-xmlValue(blast.hits[[i]][["Hit_hsps"]][["Hsp"]][["Hsp_positive"]])
+	blast.hit.length[[i]]<-xmlValue(blast.hits[[i]][["Hit_len"]])
+	i<-i+1 
+}
+blast.scores<-as.numeric(blast.scores)
+blast.align.length<-as.numeric(blast.align.length)
+blast.positive<-as.numeric(blast.positive)
+percentage.hits<-(blast.positive/blast.align.length)*100
+blast.hit.length<-as.numeric(blast.hit.length)
+
+ids1<-strsplit(ids,"|",fixed=TRUE)
+
+i<-1
+pdb.ids<-character()
+while(i<=xmlSize(blast.hits))
+{
+	pdb.ids[[i]]<-ids1[[i]][[4]]
+	i<-i+1
+}
+
+blast.results<-data.frame(pdb.ids,blast.scores)
+
+
+#Selecting statistically significant proteins for analysis
+
+sig.pdb.ids<-character()
+i<-1
+while(percentage.hits[i] >= 99)
+{
+	if(((nchar(seq)-1)-blast.hit.length[i])<=5&blast.hit.length[i]-(nchar(seq)-1)<=5)
+	{
+		sig.pdb.ids[i]<-pdb.ids[i]
+	}
+
+i<-i+1
+}
+
 
 # General import pdb - User enters pdb id (or is obtained from blast) - script finds relevant url. 
 aminoacid.match2.store<-character()
 master.i<-1
-
+while(master.i<=length(sig.pdb.ids))
+{
 	pdb.url<-sub("___",sig.pdb.ids[master.i],"http://www.rcsb.org/pdb/files/___.pdb1",fixed=TRUE)
 
 	x<-read.pdb(pdb.url,multi=TRUE,rm.alt=FALSE)
@@ -512,7 +509,7 @@ master.i<-1
 	#Adds all atoms to the 3d plot - can see where hydrophobic amino acids are in relation to non hydrophobic ones.
 	points3d(x=onexval,y=oneyval,z=onezval,col="blue",box=FALSE,axes=FALSE)
 
-	#Gives list of hydrophobic amino acids on first chain < 5 angstroms from another hydrophobic amino acid on a different chain
+	#Gives list of hydrophobic amino acids on first chain < 4.5 angstroms from another hydrophobic amino acid on a different chain
 	
 	atom.aminoacid.match<-numeric(0)
 	residue.no.store<-numeric(0)
@@ -525,7 +522,6 @@ master.i<-1
 	}
 	
 	residue.no.store<-unique(residue.no.store)
-	residue.no.store<-toString(residue.no.store)
 	aminoacid.match<-unique(atom.aminoacid.match)
 	print(aminoacid.match)
 	
@@ -544,10 +540,10 @@ master.i<-1
 	}
 	
 	residue.no.store2<-unique(residue.no.store2)
-	toString(residue.no.store2)
 	aminoacid.match2<-unique(atom.aminoacid.match2)
 	print(aminoacid.match2)
 	
+	residue.no.store<-toString(unique(c(residue.no.store,residue.no.store2)))
 	aminoacid.match2.store<-c(aminoacid.match2.store,aminoacid.match2)
 	
 
@@ -557,8 +553,9 @@ master.i<-1
 	p<-1
 	while(p<=length(residue.match.store))
 	{
-		primer.residue.no.store<-c(primer.residue.no.store,residue.numbers[residue.match.store])
-		primer.atom.aminoacid.match<-c(primer.atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",residue.numbers[residue.match.store][p]),collapse=""))
+		primer.residue.no.store<-c(primer.residue.no.store,residue.numbers[residue.match.store],residue.numbers[residue.match.store2])
+		primer.atom.aminoacid.match<-c(primer.atom.aminoacid.match,paste(c(x$atom[residue.match.store,4][p],"-",residue.numbers[residue.match.store][p]),collapse=""),
+		paste(c(x$atom[residue.match.store2,4][p],"-",residue.numbers[residue.match.store2][p]),collapse=""))
 		p<-p+1
 	}
 	
@@ -583,7 +580,7 @@ master.i<-1
 	
 	compile<-c(open,add.sym,colour,show)
 	
-	file.name<-sub("___",sig.pdb.ids[master.i],"___.cmd")
+	file.name<-sub("___",sig.pdb.ids[master.i],"___ 3D Structure.cmd")
 	write(x=compile,file=file.name)
 
 	##### Uses PrimerX to find mutagenesis primers for breaking apart protein.
@@ -631,8 +628,12 @@ master.i<-1
 			"Generate primers"="Generate primers",
 			protocol="Basic")
 	
-			primer.html.file.name<-sub("___",mutation.codes[i],"___ mutagenesis primers.html")
+			primer.html.file.name<-sub("___",mutation.codes[i],"xxx ___ mutagenesis primers.html")
+			primer.html.file.name<-sub("xxx",sig.pdb.ids[1],primer.html.file.name)
+
 			write(primer.finder,file=primer.html.file.name)
 			i<-i+1
 		}
 	}
+master.i<-master.i+1
+}

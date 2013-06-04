@@ -31,8 +31,7 @@ data<-read.csv(file=data.file,header=FALSE)
 # Input = output of HPLC.import()
 # Output = list of absorbance values for each of the three wavelengths analysed
 
-HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
-
+HPLC.discrete.process<- function(data,wavelength,time,flow)
 {
 
 # Determine number of datapoints for each discrete wavelength
@@ -47,43 +46,13 @@ HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
   absorbance<-as.numeric(array(unlist(data[,1][-seq(1,30,1)])))
   absorbance<-absorbance[1:points[6]]
   
-  # Determine number of datapoints for each discrete wavelength
-  control.points<-as.numeric(array(unlist(control.data[,1][16:17])))
-  control.points<-c(
-    1,          control.points[1],
-    control.points[1]+1,            control.points[1]*2,
-    control.points[1]*2+1,            control.points[1]*3)
-  
-    
-  # Parse wavelength data
-  control.absorbance<-as.numeric(array(unlist(control.data[,1][-seq(1,30,1)])))
-  control.absorbance<-control.absorbance[1:control.points[6]]
 
-    
   # Separate the three wavelengths and make them relative to highest peak.
   wavA<-absorbance[seq(points[1],points[2],1)]
-  wavB<-absorbance[seq(points[3],points[4],1)]
-  control.wavA<-control.absorbance[seq(points[1],points[2],1)]
-  control.wavB<-control.absorbance[seq(points[3],points[4],1)]  
   
-  int.wavA<-sum(wavA)
-  int.wavB<-sum(wavB)
-  int.control.wavA<-sum(control.wavA)
-  int.control.wavB<-sum(control.wavB)
+  wav1<-wavA/max(wavA)
   
-  adj.wavA<-wavA/int.wavA
-  adj.wavB<-wavB/int.wavB
-  adj.control.wavA<-control.wavA/int.control.wavA
-  adj.control.wavB<-control.wavB/int.control.wavB
-  
-  adj.max<-max(adj.wavA,adj.wavB,adj.control.wavA,adj.control.wavB)
-  
-  wav1<-adj.wavA/adj.max
-  wav2<-adj.wavB/adj.max
-  control.wav1<-adj.control.wavA/adj.max
-  control.wav2<-adj.control.wavB/adj.max
-  
-	# Generate X-axis by calculating elution volume
+# Generate X-axis by calculating elution volume
   
   # Sampling rate = 10x per second
   
@@ -103,14 +72,79 @@ HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
   
   
   # Order results into a matrix
-  col.names<-c("Volume (ml)",paste(Sample,wavelength[1],sep=": "),paste(Sample,wavelength[2],sep=": "),
-  paste(Control,wavelength[1],sep=": "),paste(Control,wavelength[2],sep=": "))
+  col.names<-c("Volume (ml)",paste(Sample,wavelength[1],sep=": "))
   row.names<-seq(1,length(elution),1)
   dimnames<-list(row.names,col.names)
-  data<-matrix(data=c(elution,wav1,wav2,control.wav1,control.wav2),ncol=5,dimnames=dimnames)
-  
-  
+  data<-matrix(data=c(elution,wav1),ncol=2,dimnames=dimnames)
+}
 
+
+
+
+
+
+
+HPLC.discrete.get.peaks<-function(data)
+{
+# Fits linear model to baseline of 24mer and monomer
+x.values<-unlist(array(data[,1]))
+y.values<-unlist(array(data[,2]))
+
+plot(x=x.values,y=y.values,type='l',col=2)
+
+largemer.baseline.x.val<-x.values[grep(x=x.values<=4,pattern=TRUE)]
+largemer.baseline.y.val<-y.values[grep(x=x.values<=4,pattern=TRUE)]
+
+monomer.baseline.x.val<-x.values[grep(x=x.values>=8,pattern=TRUE)]
+monomer.baseline.y.val<-y.values[grep(x=x.values>=8,pattern=TRUE)]
+
+c.largemer<-array(summary(lm(largemer.baseline.y.val~largemer.baseline.x.val))$coefficients[,1][1])
+c.monomer<-array(summary(lm(monomer.baseline.y.val~monomer.baseline.x.val))$coefficients[,1][1])
+
+m.largemer<-array(summary(lm(largemer.baseline.y.val~largemer.baseline.x.val))$coefficients[,1][2])
+m.monomer<-array(summary(lm(monomer.baseline.y.val~monomer.baseline.x.val))$coefficients[,1][2])
+
+largemer.linear<-lm(largemer.baseline.y.val~largemer.baseline.x.val)
+abline(largemer.linear,col=4)
+monomer.linear<-lm(monomer.baseline.y.val~monomer.baseline.x.val)
+abline(monomer.linear,col=3)
+
+# Normalise 24mer peak relative to new baseline 
+x.values.largemer<-x.values[grep(x=(x.values<=6),pattern=TRUE)]
+y.values.largemer<-y.values[grep(x=(x.values<=6),pattern=TRUE)]
+x.output.largemer<-x.values.largemer[rev(order(y.values.largemer))[1]]
+y.output.largemer<-y.values.largemer[rev(order(y.values.largemer))[1]]
+y.baseline.largemer<-m.largemer*x.output.largemer+c.largemer
+normalised.ymax.largemer<-y.output.largemer-y.baseline.largemer
+print(c("non-normalised peak = " , y.output.largemer))
+print(c("largemer y baseline = " , y.baseline.largemer))
+print(c("normalised peak height = " , normalised.ymax.largemer))
+
+
+
+# Normalise Monomer peak relative to new baseline
+x.values.monomer<-x.values[grep(x=(x.values>=6),pattern=TRUE)]
+y.values.monomer<-y.values[grep(x=(x.values>=6),pattern=TRUE)]
+x.output.monomer<-x.values.monomer[rev(order(y.values.monomer))[1]]
+y.output.monomer<-y.values.monomer[rev(order(y.values.monomer))[1]]
+y.baseline.monomer<-m.monomer*x.output.monomer+c.monomer
+normalised.ymax.monomer<-y.output.monomer-y.baseline.monomer
+print(c("non-normalised peak = " , y.output.monomer))
+print(c("monomer y baseline = " , y.baseline.monomer))
+print(c("normalised peak height = " , normalised.ymax.monomer))
+
+colnames<-c('Normalised 24mer Peak','Normalised Monomer Peak')
+rownames<-'Relative Absorbance'
+dimnames<-list(rownames,colnames)
+normalised.peaks<-matrix(data=c(normalised.ymax.largemer,normalised.ymax.monomer),ncol=2,dimnames=dimnames)
+tot.peaks<-peaks[,2]+peaks[,1]
+
+percent.24mer<-(normalised.ymax.largemer/(normalised.ymax.largemer+normalised.ymax.monomer))*100
+percent.monomer<-(normalised.ymax.monomer/(normalised.ymax.largemer+normalised.ymax.monomer))*100
+colnames<-c('24mer Peak Absorbance (%)','Monomer Peak Absorbance (%)')
+rownames<-'1'
+dimnames<-list(rownames,colnames)
+normalised.peaks<-matrix(data=c(percent.24mer,percent.monomer),ncol=2,dimnames=dimnames)
 }
 
 ############################################################
@@ -146,12 +180,12 @@ write.csv(x=sample.summary,file=file.name)
 
 HPLC.discrete.plot1<- function(hplc.data,figure.dir,colours)
 {
-  setwd(figure.dir)
   png(file=paste(c(Sample,".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
   plot(x=data[,1],y=data[,2],type='l',col=colours[1],xlab="Volume (ml)",ylab="Relative Absorbance (A.U)",main=Sample,lwd=2,ylim=c(-0.1,1),cex.main=3,cex.lab=1.2,cex.axis=1.2)
   points(x=data[,1],y=data[,3],type='l',col=colours[2],lwd=2)
   points(x=data[,1],y=data[,4],type='l',col=colours[3])
   points(x=data[,1],y=data[,5],type='l',col=colours[4])
+  abline(-1.380262e-06,-0.009661836)
 
   legend(x=c(9,11),y=c(0.8,1),legend=c(figure.leg1,figure.leg2,figure.leg3,figure.leg4),col=colours,lty=1,lwd=3,cex=1.1, bty='n')
   dev.off()
@@ -161,14 +195,6 @@ HPLC.discrete.plot1<- function(hplc.data,figure.dir,colours)
 
 
 # Gets values for largest 24mer and monomer peak
-max.wav1<-max(data[,2]
-max.wav2<-max(data[,3])
-max.control.wav1<-max(data[,4])
-max.control.wav2<-max(data[,5])
-monomer.wav1<-max(data[12300:length(data[,2]),2])
-monomer.wav2<-max(data[12300:length(data[,3]),3])
-monomer.control.wav1<-max(data[12300:length(data[,4]),4])
-monomer.control.wav2<-max(data[12300:length(data[,5]),5])
 
 
 # EXAMPLE
@@ -182,54 +208,26 @@ monomer.control.wav2<-max(data[12300:length(data[,5]),5])
 ################# DEFINE INPUT VARIABLES
 
 # HPLC.import
-Sample.name<-"C.68 Run 1" 
+Sample.name<-"C.69 Run 3" 
 Sample<-Sample.name
 result.type<-"discrete"
-parent.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/2013-05-23"
-
-Control<-"C.42 Run 3"
+parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
 
 # HPLC.discrete.process
-wavelength<-c("280 nm","497 nm")
+wavelength<-c("280 nm","497 nm","530 nm")
 time<-45
 flow<-0.3
 
 ################# Calculate Results
 data<-HPLC.import(Sample,result.type,parent.dir)
-control.data<-HPLC.import(Control,result.type,parent.dir)
-data<-HPLC.discrete.process(data,control.data,wavelength,time,flow)
-
-figure.leg1<-paste(Sample,wavelength[1],sep=": ")
-figure.leg2<-paste(Sample,wavelength[2],sep=": ")
-
+data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
+peaks<-HPLC.discrete.get.peaks(data)
+print(peaks)
 # HPLC.discrete.plot1 
-figure.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/"
-colours<-c(3,4,5,6)
-
-
+figure.dir<-"//ic.ac.uk/homes/hfr10/"
 
 ################# Calculate Results
-
-figure.leg3<-paste(Control,wavelength[1],sep=": ")
-figure.leg4<-paste(Control,wavelength[2],sep=": ")
 
 HPLC.discrete.plot1(data,figure.dir,colours)
 HPLC.discrete.summary()
 #rm(list=ls())
-
-linear.x<-data[18000:length(data[,1]),1]
-linear.y<-data[18000:length(data[,1]),5]
-
-
-
-# Gets values for largest 24mer and monomer peak
-max.wav1<-max(data[,2]
-max.wav2<-max(data[,3])
-max.control.wav1<-max(data[,4])
-max.control.wav2<-max(data[,5])
-
-monomer.wav1<-max(data[12300:length(data[,2]),2])
-monomer.wav2<-max(data[12300:length(data[,3]),3])
-monomer.control.wav1<-max(data[12300:length(data[,4]),4])
-monomer.control.wav2<-max(data[12300:length(data[,5]),5])
-

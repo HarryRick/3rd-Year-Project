@@ -115,9 +115,9 @@ m.largemer<-array(summary(lm(largemer.baseline.y.val~largemer.baseline.x.val))$c
 m.monomer<-array(summary(lm(monomer.baseline.y.val~monomer.baseline.x.val))$coefficients[,1][2])
 
 largemer.linear<-lm(largemer.baseline.y.val~largemer.baseline.x.val)
-abline(largemer.linear,col=4)
+abline(largemer.linear,col=4,lty=2)
 monomer.linear<-lm(monomer.baseline.y.val~monomer.baseline.x.val)
-abline(monomer.linear,col=3)
+abline(monomer.linear,col=3,lty=2)
 dev.off()
 
 # Normalise 24mer peak relative to new baseline 
@@ -159,46 +159,6 @@ normalised.peaks<-c(percent.24mer,percent.monomer)
 ############################################################
 
 
-
-#################### FUNCTION HPLC.discrete.summary ####################
-
-# Finds and saves elution point of greatest peak
-
-HPLC.discrete.summary<-function()
-{
-# Peak
-setwd(parent.dir)
-wav1.peak<-data[,1][rev(order(data[,2]))[1]]
-wav2.peak<-data[,1][rev(order(data[,3]))[1]]
-control.wav1.peak<-data[,1][rev(order(data[,4]))[1]]
-control.wav2.peak<-data[,1][rev(order(data[,4]))[1]]
-row.name<-c(paste(Sample, "elution peak (ml)"),paste(Control, "elution peak(ml)"))
-dimnames<-list(row.name,wavelength)
-sample.summary<-matrix(c(wav1.peak,wav2.peak,control.wav1.peak,control.wav2.peak),
-ncol=2,nrow=2,dimnames=dimnames)
-file.name<-paste(c(Sample,"-summary.csv"),collapse="")
-write.csv(x=sample.summary,file=file.name)
-}
-############################################################
-
-
-#################### FUNCTION HPLC.discrete.plot1 ####################
-
-# Input = output of HPLC.import()
-# Output = list of absorbance values for each of the three wavelengths analysed
-
-HPLC.discrete.plot1<- function(hplc.data,figure.dir,colours)
-{
-  png(file=paste(c(Sample,".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
-  plot(x=data[,1],y=data[,2],type='l',col=colours[1],xlab="Volume (ml)",ylab="Relative Absorbance (A.U)",main=Sample,lwd=2,ylim=c(-0.1,1),cex.main=3,cex.lab=1.2,cex.axis=1.2)
-  points(x=data[,1],y=data[,3],type='l',col=colours[2],lwd=2)
-  points(x=data[,1],y=data[,4],type='l',col=colours[3])
-  points(x=data[,1],y=data[,5],type='l',col=colours[4])
-  abline(-1.380262e-06,-0.009661836)
-
-  legend(x=c(9,11),y=c(0.8,1),legend=c(figure.leg1,figure.leg2,figure.leg3,figure.leg4),col=colours,lty=1,lwd=3,cex=1.1, bty='n')
-  dev.off()
-}
 ############################################################
 
 
@@ -299,7 +259,11 @@ dimnames.error<-list(rownames.error,colnames)
 barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimnames)
 error.bar.data.matrix<-matrix(ncol=3,nrow=2,error.bar.data,byrow=FALSE,dimnames=dimnames.error)
 
-barplot<-barplot(height=barplot.data.matrix,beside=TRUE,space=c(0,1),col=c("palegreen","darkred"),
+png(file=paste(c("Barchart of Percentage aborbance values.png"),
+collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+barplot<-barplot(height=barplot.data.matrix,main="Effect of mutants on the ratio of 24mer against the monomer",
+beside=TRUE,space=c(0,1),col=c("palegreen","darkred"),
 legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120))
 error.bar(barplot,barplot.data,error.bar.data)
+dev.off()
 

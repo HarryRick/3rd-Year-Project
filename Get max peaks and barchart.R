@@ -136,15 +136,13 @@ print(c("normalised peak height = " , normalised.ymax.monomer))
 colnames<-c('Normalised 24mer Peak','Normalised Monomer Peak')
 rownames<-'Relative Absorbance'
 dimnames<-list(rownames,colnames)
+
 normalised.peaks<-matrix(data=c(normalised.ymax.largemer,normalised.ymax.monomer),ncol=2,dimnames=dimnames)
-tot.peaks<-peaks[,2]+peaks[,1]
 
 percent.24mer<-(normalised.ymax.largemer/(normalised.ymax.largemer+normalised.ymax.monomer))*100
 percent.monomer<-(normalised.ymax.monomer/(normalised.ymax.largemer+normalised.ymax.monomer))*100
-colnames<-c('24mer Peak Absorbance (%)','Monomer Peak Absorbance (%)')
-rownames<-'1'
-dimnames<-list(rownames,colnames)
-normalised.peaks<-matrix(data=c(percent.24mer,percent.monomer),ncol=2,dimnames=dimnames)
+
+normalised.peaks<-c(percent.24mer,percent.monomer)
 }
 
 ############################################################
@@ -209,7 +207,7 @@ HPLC.discrete.plot1<- function(hplc.data,figure.dir,colours)
 
 # HPLC.import
 dir<-dir()
-Sample.name<-"C.69" 
+Sample.name<-"C.42" 
 result.type<-"discrete"
 parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
 figure.dir<-"//ic.ac.uk/homes/hfr10/"
@@ -221,17 +219,28 @@ sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir,value=TRUE)
 sample.file.names<-grep("discrete",sample.file.names,value=TRUE)
 sample.numbers<-gsub(paste(Sample.name," Run ",sep=""),"",sample.file.names)
 sample.numbers<-as.numeric(gsub(" - discrete.asc","",sample.numbers))
+colnames<-c(paste(Sample.name,"24mer % absorbance"),paste(Sample.name,"Monomer % Abosrbance"))
+rownames<-character()
+i<-1
+while(i<=length(sample.numbers))
+{
+	rownames[i]<-paste("Run",i)
+	i<-i+1
+}
+dimnames<-list(rownames,colnames)
+peaks.store<-matrix(ncol=2,nrow=length(sample.numbers),dimnames=dimnames)
 i<-1
 while(i<=max(sample.numbers))
 {
-# HPLC.discrete.process
-################# Calculate Results
-Sample<-paste(Sample.name,"Run",sample.numbers[i],sep=" ")
-data<-HPLC.import(Sample,result.type,parent.dir)
-data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
-peaks<-c(peaks,HPLC.discrete.get.peaks(data))
-print(peaks)
-i<-i+1
+	# HPLC.discrete.process
+	################# Calculate Results
+	Sample<-paste(Sample.name,"Run",sample.numbers[i],sep=" ")
+	data<-HPLC.import(Sample,result.type,parent.dir)
+	data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
+	normalised.peaks<-HPLC.discrete.get.peaks(data)
+	peaks.store[i,]<-normalised.peaks
+	print(normalised.peaks)
+	i<-i+1
 }
 ################# Calculate Results
 

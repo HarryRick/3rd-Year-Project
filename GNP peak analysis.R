@@ -18,13 +18,14 @@ error.bar <- function(x, y, upper, lower=upper, length=0.1,...)
 
 
 
-HPLC.import <- function (Sample,result.type,parent.dir)
+HPLC.import <- function (Sample.name,result.type,parent.dir,peak.size,treatment,dir)
 {
 # Navigate to data
-	setwd(parent.dir)
-	data.file<-dir()[grep(x=dir(parent.dir),pattern=result.type,ignore.case=TRUE)]
-	data.file<-data.file[grep(x=data.file,pattern=Sample)]
-	data.file.names<-unlist(strsplit(x=data.file,split="-"))[seq(1,(3*length(data.file)),3)]
+	data.file<-grep(Sample.name,dir,value=TRUE)
+	data.file<-grep(peak.size,data.file,value=TRUE)
+	data.file<-grep(result.type,data.file,value=TRUE)
+	data.file<-grep(treatment,data.file,value=TRUE)
+
 	# Read data into R
 	data<-read.csv(file=data.file,header=FALSE)
 }
@@ -56,8 +57,18 @@ HPLC.discrete.process<- function(data,wavelength,time,flow)
   
 
   # Separate the three wavelengths and make them relative to highest peak.
-  wavA<-absorbance[seq(points[1],points[2],1)]
-  
+  if(wavelength=="280nm")
+  {
+  	wavA<-absorbance[seq(points[1],points[2],1)]
+  }
+  if(wavelength=="497nm")
+  {
+  	wavA<-absorbance[seq(points[3],points[4],1)]
+  }
+  if(wavelength=="530nm")
+  {
+  	wavA<-absorbance[seq(points[5],points[6],1)]
+  }
   wav1<-wavA/max(wavA)
   
 # Generate X-axis by calculating elution volume
@@ -98,7 +109,7 @@ HPLC.discrete.get.peaks<-function(data,Sample)
 x.values<-unlist(array(data[,1]))
 y.values<-unlist(array(data[,2]))
 
-png(file=paste(c(Sample,".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+png(file=paste(c(Sample, peak.size,treatment,".png"),collapse=" "), bg="transparent", width =1000, height=500,units="px",pointsize=13)
 
 plot(x=x.values,y=y.values,type='l',col=2)
 
@@ -134,8 +145,8 @@ print(c("normalised peak height = " , normalised.ymax.largemer))
 
 
 # Normalise Monomer peak relative to new baseline
-x.values.monomer<-x.values[grep(x=(x.values>=6),pattern=TRUE)]
-y.values.monomer<-y.values[grep(x=(x.values>=6),pattern=TRUE)]
+x.values.monomer<-x.values[grep(x=(x.values>=6 & x.values<=8),pattern=TRUE)]
+y.values.monomer<-y.values[grep(x=(x.values>=6 & x.values<=8),pattern=TRUE)]
 x.output.monomer<-x.values.monomer[rev(order(y.values.monomer))[1]]
 y.output.monomer<-y.values.monomer[rev(order(y.values.monomer))[1]]
 y.baseline.monomer<-m.monomer*x.output.monomer+c.monomer
@@ -177,23 +188,29 @@ normalised.peaks<-c(percent.24mer,percent.monomer)
 ################# DEFINE INPUT VARIABLES
 
 # HPLC.import
-dir<-dir()
-Sample.name<-"C.42" 
+parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-29"
+dir<-dir(parent.dir)
+Sample.name<-"C.68"
 result.type<-"discrete"
-parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
+peak.size<-"Small"
 figure.dir<-"//ic.ac.uk/homes/hfr10/"
-wavelength<-c("280 nm")
+wavelength<-"497nm"
 time<-45
 flow<-0.3
 
 #Extracts the repeat numbers from the directory 
-sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir,value=TRUE)
-sample.file.names<-grep("discrete",sample.file.names,value=TRUE)
-sample.numbers<-gsub(paste(Sample.name," Run ",sep=""),"",sample.file.names)
-sample.numbers<-as.numeric(gsub(" - discrete.asc","",sample.numbers))
+data.files<-grep(Sample.name,dir,value=TRUE)
+data.files<-grep(result.type,data.files,value=TRUE)
+data.files<-grep(peak.size,data.files,value=TRUE)
+data.files<-grep(treatment,data.files,value=TRUE)
+
+sample.numbers<-gsub(paste(Sample.name," Run ",sep=""),"",data.files)
+sample.numbers<-as.numeric(gsub(pattern=paste(" - ",peak.size," - ",treatment, " - discrete.asc",sep=""),
+"",sample.numbers))
 
 # Creates matrix which will contain peak data.
 colnames<-c(paste(Sample.name,"24mer % absorbance"),paste(Sample.name,"Monomer % Abosrbance"))
+
 rownames<-character()
 i<-1
 while(i<=length(sample.numbers))
@@ -201,52 +218,172 @@ while(i<=length(sample.numbers))
 	rownames[i]<-paste("Run",i)
 	i<-i+1
 }
+
 dimnames<-list(rownames,colnames)
 peaks.store<-matrix(ncol=2,nrow=length(sample.numbers),dimnames=dimnames)
 
 i<-1
+treatment<-"Control"
 while(i<=max(sample.numbers))
 {
 	# HPLC.discrete.process
 	################# Calculate Results
 	Sample<-paste(Sample.name,"Run",sample.numbers[i],sep=" ")
-	data<-HPLC.import(Sample,result.type,parent.dir)
+	data<-HPLC.import(Sample,result.type,parent.dir,peak.size,treatment,dir)
 	data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
 	normalised.peaks<-HPLC.discrete.get.peaks(data,Sample)
 	peaks.store[i,]<-normalised.peaks
 	print(normalised.peaks)
 	if(Sample.name=="C.42")
 	{
-		C.42.peaks.store<-peaks.store
+		if(peak.size=="Large")
+		{
+			if(treatment=="Control")
+			{	
+				cont.L.C42.peaks<-peaks.store
+			}
+			else
+			{
+				GNP.L.C42.peaks<-peaks.store
+			}
+		}
+		else
+		{
+			if(treatment=="Control")
+			{	
+				cont.S.C42.peaks<-peaks.store
+			}
+			else
+			{
+				GNP.S.C42.peaks<-peaks.store
+			}
+		}
 	}
 	if(Sample.name=="C.68")
 	{
-		C.68.peaks.store<-peaks.store
+		if(peak.size=="Large")
+		{
+			if(treatment=="Control")
+			{	
+				cont.L.C68.peaks<-peaks.store
+			}
+			else
+			{
+				GNP.L.C68.peaks<-peaks.store
+			}	
+		}
+		else
+		{
+			if(treatment=="Control")
+			{	
+				cont.S.C68.peaks<-peaks.store
+			}
+			else
+			{
+				GNP.S.C68.peaks<-peaks.store
+			}		
+		}	
 	}
 	if(Sample.name=="C.69")
-	{
-		C.69.peaks.store<-peaks.store
+	{	
+		if(peak.size=="Large")
+		{
+			if(treatment=="Control")
+			{	
+				cont.L.69.peaks<-peaks.store
+			}
+			else
+			{
+				GNP.L.C69.peaks<-peaks.store
+			}		
+		}
+		else
+		{
+			if(treatment=="Control")
+			{	
+				cont.L.C68.peaks<-peaks.store
+			}
+			else
+			{
+				GNP.L.C68.peaks<-peaks.store
+			}		
+		}
 	}
 	i<-i+1
+	if(treatment=="Control")
+	{
+		if(i>=max(sample.numbers))
+		{
+			treatment<-"5nm GNPs"
+			i<-1
+		}
+	}
+	p<-p+1
 }
 write.csv(x=peaks.store,file=paste(Sample.name,"peak percentages.csv"))
 
-C.42.24mer.mean<-mean(C.42.peaks.store[,1])
-C.42.monomer.mean<-mean(C.42.peaks.store[,2])
-C.68.monomer.mean<-mean(C.68.peaks.store[,2])
-C.68.24mer.mean<-mean(C.68.peaks.store[,1])
-C.69.24mer.mean<-mean(C.69.peaks.store[,1])
-C.69.monomer.mean<-mean(C.69.peaks.store[,2])
+cont.S.C.42.24mer.mean<-mean(cont.S.C42.peaks[,1])
+cont.S.C.42.monomer.mean<-mean(cont.S.C42.peaks[,2])
+cont.S.C.68.monomer.mean<-mean(cont.S.C68.peaks[,2])
+cont.S.C.68.24mer.mean<-mean(cont.S.C68.peaks[,1])
+cont.S.C.69.24mer.mean<-mean(cont.S.C69.peaks[,1])
+cont.S.C.69.monomer.mean<-mean(cont.S.C69.peaks[,2])
 
-C.42.24mer.std.error<-std.error(C.42.peaks.store[,1])
-C.42.monomer.std.error<-std.error(C.42.peaks.store[,2])
-C.68.monomer.std.error<-std.error(C.68.peaks.store[,2])
-C.68.24mer.std.error<-std.error(C.68.peaks.store[,1])
-C.69.24mer.std.error<-std.error(C.69.peaks.store[,1])
-C.69.monomer.std.error<-std.error(C.69.peaks.store[,2])
+GNP.S.C.42.24mer.mean<-mean(GNP.S.C42.peaks[,1])
+GNP.S.C.42.monomer.mean<-mean(GNP.S.C42.peaks[,2])
+GNP.S.C.68.monomer.mean<-mean(GNP.S.C68.peaks[,2])
+GNP.S.C.68.24mer.mean<-mean(GNP.S.C68.peaks[,1])
+GNP.S.C.69.24mer.mean<-mean(GNP.S.C69.peaks[,1])
+GNP.S.C.69.monomer.mean<-mean(GNP.S.C69.peaks[,2])
 
-barplot.data<-c(C.42.24mer.mean, C.42.monomer.mean,C.68.24mer.mean,C.68.monomer.mean,
-C.69.24mer.mean, C.69.monomer.mean)
+cont.L.C.42.24mer.mean<-mean(cont.L.C42.peaks[,1])
+cont.L.C.42.monomer.mean<-mean(cont.L.C42.peaks[,2])
+cont.L.C.68.monomer.mean<-mean(cont.L.68.peaks[,2])
+cont.L.C.68.24mer.mean<-mean(cont.L.C68.peaks[,1])
+cont.L.C.69.24mer.mean<-mean(cont.L.C69.peaks[,1])
+cont.L.C.69.monomer.mean<-mean(cont.L.C69.peaks[,2])
+
+GNP.L.C.42.24mer.mean<-mean(GNP.L.C42.peaks[,1])
+GNP.L.C.42.monomer.mean<-mean(GNP.L.C42.peaks[,2])
+GNP.L.C.68.monomer.mean<-mean(GNP.L.C68.peaks[,2])
+GNP.L.C.68.24mer.mean<-mean(GNP.L.C68.peaks[,1])
+GNP.L.C.69.24mer.mean<-mean(GNP.L.C69.peaks[,1])
+GNP.L.C.69.monomer.mean<-mean(GNP.L.C69.peaks[,2])
+
+cont.S.C.42.24mer.std.error<-std.error(cont.S.C42.peaks[,1])
+cont.S.C.42.monomer.std.error<-std.error(cont.S.C42.peaks[,2])
+cont.S.C.68.monomer.std.error<-std.error(cont.S.C68.peaks[,2])
+cont.S.C.68.24mer.std.error<-std.error(cont.S.C68.peaks[,1])
+cont.S.C.69.24mer.std.error<-std.error(cont.S.C69.peaks[,1])
+cont.S.C.69.monomer.std.error<-std.error(cont.S.C69.peaks[,2])
+
+GNP.S.C.42.24mer.std.error<-std.error(GNP.S.C42.peaks[,1])
+GNP.S.C.42.monomer.std.error<-std.error(GNP.S.C42.peaks[,2])
+GNP.S.C.68.monomer.std.error<-std.error(GNP.S.C68.peaks[,2])
+GNP.S.C.68.24mer.std.error<-std.error(GNP.S.C68.peaks[,1])
+GNP.S.C.69.24mer.std.error<-std.error(GNP.S.C69.peaks[,1])
+GNP.S.C.69.monomer.std.error<-std.error(GNP.S.C69.peaks[,2])
+
+cont.L.C.42.24mer.std.error<-std.error(cont.L.C42.peaks[,1])
+cont.L.C.42.monomer.std.error<-std.error(cont.L.C42.peaks[,2])
+cont.L.C.68.monomer.std.error<-std.error(cont.L.68.peaks[,2])
+cont.L.C.68.24mer.std.error<-std.error(cont.L.C68.peaks[,1])
+cont.L.C.69.24mer.std.error<-std.error(cont.L.C69.peaks[,1])
+cont.L.C.69.monomer.std.error<-std.error(cont.L.C69.peaks[,2])
+
+GNP.L.C.42.24mer.std.error<-std.error(GNP.L.C42.peaks[,1])
+GNP.L.C.42.monomer.std.error<-std.error(GNP.L.C42.peaks[,2])
+GNP.L.C.68.monomer.std.error<-std.error(GNP.L.C68.peaks[,2])
+GNP.L.C.68.24mer.std.error<-std.error(GNP.L.C68.peaks[,1])
+GNP.L.C.69.24mer.std.error<-std.error(GNP.L.C69.peaks[,1])
+GNP.L.C.69.monomer.std.error<-std.error(GNP.L.C69.peaks[,2])
+
+
+C.42.barplot.data<-c(cont.S.C.42.24mer.mean, cont.S.C.42.monomer.mean, GNP.S.C.42.24mer.mean,
+GNP.S.C.42.monomer.mean, cont.L.C.42.24mer.mean, cont.L.C.42.monomer.mean, GNP.L.C.42.24mer.mean,
+GNP.L.C.42.monomer.mean)
+
+
 error.bar.data<-c(C.42.24mer.std.error, C.42.monomer.std.error,C.68.24mer.std.error,C.68.monomer.std.error,
 C.69.24mer.std.error, C.69.monomer.std.error)
 

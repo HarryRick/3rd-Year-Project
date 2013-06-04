@@ -190,7 +190,7 @@ normalised.peaks<-c(percent.24mer,percent.monomer)
 # HPLC.import
 parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-29"
 dir<-dir(parent.dir)
-Sample.name<-"C.68"
+Sample.name<-"C.69"
 result.type<-"discrete"
 peak.size<-"Small"
 figure.dir<-"//ic.ac.uk/homes/hfr10/"
@@ -290,7 +290,7 @@ while(i<=max(sample.numbers))
 		{
 			if(treatment=="Control")
 			{	
-				cont.L.69.peaks<-peaks.store
+				cont.L.C69.peaks<-peaks.store
 			}
 			else
 			{
@@ -301,11 +301,11 @@ while(i<=max(sample.numbers))
 		{
 			if(treatment=="Control")
 			{	
-				cont.L.C68.peaks<-peaks.store
+				cont.S.C69.peaks<-peaks.store
 			}
 			else
 			{
-				GNP.L.C68.peaks<-peaks.store
+				GNP.S.C69.peaks<-peaks.store
 			}		
 		}
 	}
@@ -322,6 +322,7 @@ while(i<=max(sample.numbers))
 }
 write.csv(x=peaks.store,file=paste(Sample.name,"peak percentages.csv"))
 
+#Calculates means of all the data
 cont.S.C.42.24mer.mean<-mean(cont.S.C42.peaks[,1])
 cont.S.C.42.monomer.mean<-mean(cont.S.C42.peaks[,2])
 cont.S.C.68.monomer.mean<-mean(cont.S.C68.peaks[,2])
@@ -338,7 +339,7 @@ GNP.S.C.69.monomer.mean<-mean(GNP.S.C69.peaks[,2])
 
 cont.L.C.42.24mer.mean<-mean(cont.L.C42.peaks[,1])
 cont.L.C.42.monomer.mean<-mean(cont.L.C42.peaks[,2])
-cont.L.C.68.monomer.mean<-mean(cont.L.68.peaks[,2])
+cont.L.C.68.monomer.mean<-mean(cont.L.C68.peaks[,2])
 cont.L.C.68.24mer.mean<-mean(cont.L.C68.peaks[,1])
 cont.L.C.69.24mer.mean<-mean(cont.L.C69.peaks[,1])
 cont.L.C.69.monomer.mean<-mean(cont.L.C69.peaks[,2])
@@ -350,6 +351,8 @@ GNP.L.C.68.24mer.mean<-mean(GNP.L.C68.peaks[,1])
 GNP.L.C.69.24mer.mean<-mean(GNP.L.C69.peaks[,1])
 GNP.L.C.69.monomer.mean<-mean(GNP.L.C69.peaks[,2])
 
+
+# Calculates standard errors of all data
 cont.S.C.42.24mer.std.error<-std.error(cont.S.C42.peaks[,1])
 cont.S.C.42.monomer.std.error<-std.error(cont.S.C42.peaks[,2])
 cont.S.C.68.monomer.std.error<-std.error(cont.S.C68.peaks[,2])
@@ -366,7 +369,7 @@ GNP.S.C.69.monomer.std.error<-std.error(GNP.S.C69.peaks[,2])
 
 cont.L.C.42.24mer.std.error<-std.error(cont.L.C42.peaks[,1])
 cont.L.C.42.monomer.std.error<-std.error(cont.L.C42.peaks[,2])
-cont.L.C.68.monomer.std.error<-std.error(cont.L.68.peaks[,2])
+cont.L.C.68.monomer.std.error<-std.error(cont.L.C68.peaks[,2])
 cont.L.C.68.24mer.std.error<-std.error(cont.L.C68.peaks[,1])
 cont.L.C.69.24mer.std.error<-std.error(cont.L.C69.peaks[,1])
 cont.L.C.69.monomer.std.error<-std.error(cont.L.C69.peaks[,2])
@@ -379,27 +382,57 @@ GNP.L.C.69.24mer.std.error<-std.error(GNP.L.C69.peaks[,1])
 GNP.L.C.69.monomer.std.error<-std.error(GNP.L.C69.peaks[,2])
 
 
-C.42.barplot.data<-c(cont.S.C.42.24mer.mean, cont.S.C.42.monomer.mean, GNP.S.C.42.24mer.mean,
-GNP.S.C.42.monomer.mean, cont.L.C.42.24mer.mean, cont.L.C.42.monomer.mean, GNP.L.C.42.24mer.mean,
-GNP.L.C.42.monomer.mean)
+C.42.barplot.data<-c(cont.L.C.42.24mer.mean, cont.L.C.42.monomer.mean, GNP.L.C.42.24mer.mean,
+GNP.L.C.42.monomer.mean, cont.S.C.42.24mer.mean, cont.S.C.42.monomer.mean, GNP.S.C.42.24mer.mean,
+GNP.S.C.42.monomer.mean)
 
+C.68.barplot.data<-c(cont.L.C.68.24mer.mean, cont.L.C.68.monomer.mean, GNP.L.C.68.24mer.mean,
+GNP.L.C.68.monomer.mean, cont.S.C.68.24mer.mean, cont.S.C.68.monomer.mean, GNP.S.C.68.24mer.mean,
+GNP.S.C.68.monomer.mean)
+
+C.69.barplot.data<-c(cont.L.C.69.24mer.mean, cont.L.C.69.monomer.mean, GNP.L.C.69.24mer.mean,
+GNP.L.C.69.monomer.mean, cont.S.C.69.24mer.mean, cont.S.C.69.monomer.mean, GNP.S.C.69.24mer.mean,
+GNP.S.C.69.monomer.mean)
 
 error.bar.data<-c(C.42.24mer.std.error, C.42.monomer.std.error,C.68.24mer.std.error,C.68.monomer.std.error,
 C.69.24mer.std.error, C.69.monomer.std.error)
 
-colnames<-c("Wildtype GLFG","F36R GLFG","L162R GLFG")
-rownames<-c("24mer percentage absorption","Monomer percentage absorption")
+colnames<-c("Large fraction","Small Fraction")
+rownames<-c("24mer without GNPs","Monomer without GNPs","24mer with GNPs","Monomer with GNPs")
 rownames.error<-c("24mer percentage absorption std error","Monomer percentage absorption std error")
 
 dimnames<-list(rownames,colnames)
 dimnames.error<-list(rownames.error,colnames)
-barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimnames)
+
+C.42.barplot.data.matrix<-matrix(ncol=2,nrow=4,C.42.barplot.data,byrow=FALSE,dimnames=dimnames)
 error.bar.data.matrix<-matrix(ncol=3,nrow=2,error.bar.data,byrow=FALSE,dimnames=dimnames.error)
 
-png(file=paste(c("Barchart of Percentage aborbance values.png"),
-collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
-barplot<-barplot(height=barplot.data.matrix,main="Effect of mutants on the ratio of 24mer against the monomer",
-beside=TRUE,space=c(0,1),col=c("palegreen","darkred"),
+C.68.barplot.data.matrix<-matrix(ncol=2,nrow=4,C.68.barplot.data,byrow=FALSE,dimnames=dimnames)
+error.bar.data.matrix<-matrix(ncol=3,nrow=2,error.bar.data,byrow=FALSE,dimnames=dimnames.error)
+
+C.69.barplot.data.matrix<-matrix(ncol=2,nrow=4,C.69.barplot.data,byrow=FALSE,dimnames=dimnames)
+error.bar.data.matrix<-matrix(ncol=3,nrow=2,error.bar.data,byrow=FALSE,dimnames=dimnames.error)
+
+png(file=paste("C.42 barchart showing GNP effect.png"), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+C.42.barplot<-barplot(height=C.42.barplot.data.matrix,main="Effect of GNPs on
+the ratios of 24mer to monomer in wildtype GLFG",
+beside=TRUE,space=c(0,1),col=c("palegreen","darkgreen","salmon","darkred"),
+legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120))
+error.bar(barplot,barplot.data,error.bar.data)
+dev.off()
+
+png(file="C.68 barchart showing GNP effect.png", bg="transparent", width =1000, height=500,units="px",pointsize=13)
+C.68.barplot<-barplot(height=C.68.barplot.data.matrix,main="Effect of GNPs on
+the ratios of 24mer to monomer in F36R GLFG",
+beside=TRUE,space=c(0,1),col=c("palegreen","darkgreen","salmon","darkred"),
+legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120))
+error.bar(barplot,barplot.data,error.bar.data)
+dev.off()
+
+png(file=paste("C.69 barchart showing GNP effect.png"), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+C.69.barplot<-barplot(height=C.69.barplot.data.matrix,main="Effect of GNPs on
+the ratios of 24mer to monomer in L162R GLFG",
+beside=TRUE,space=c(0,1),col=c("palegreen","darkgreen","salmon","darkred"),
 legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120))
 error.bar(barplot,barplot.data,error.bar.data)
 dev.off()

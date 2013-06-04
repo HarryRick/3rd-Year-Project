@@ -208,24 +208,31 @@ HPLC.discrete.plot1<- function(hplc.data,figure.dir,colours)
 ################# DEFINE INPUT VARIABLES
 
 # HPLC.import
-Sample.name<-"C.69 Run 3" 
-Sample<-Sample.name
+dir<-dir()
+Sample.name<-"C.69" 
 result.type<-"discrete"
 parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
-
-# HPLC.discrete.process
-wavelength<-c("280 nm","497 nm","530 nm")
+figure.dir<-"//ic.ac.uk/homes/hfr10/"
+wavelength<-c("280 nm")
 time<-45
 flow<-0.3
 
+sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir,value=TRUE)
+sample.file.names<-grep("discrete",sample.file.names,value=TRUE)
+sample.numbers<-gsub(paste(Sample.name," Run ",sep=""),"",sample.file.names)
+sample.numbers<-as.numeric(gsub(" - discrete.asc","",sample.numbers))
+i<-1
+while(i<=max(sample.numbers))
+{
+# HPLC.discrete.process
 ################# Calculate Results
+Sample<-paste(Sample.name,"Run",sample.numbers[i],sep=" ")
 data<-HPLC.import(Sample,result.type,parent.dir)
 data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
-peaks<-HPLC.discrete.get.peaks(data)
+peaks<-c(peaks,HPLC.discrete.get.peaks(data))
 print(peaks)
-# HPLC.discrete.plot1 
-figure.dir<-"//ic.ac.uk/homes/hfr10/"
-
+i<-i+1
+}
 ################# Calculate Results
 
 HPLC.discrete.plot1(data,figure.dir,colours)

@@ -267,3 +267,11 @@ legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120))
 error.bar(barplot,barplot.data,error.bar.data)
 dev.off()
 
+C.68.24.T<-t.test(C.42.peaks.store[,1],C.68.peaks.store[,1])
+C.68.mono.T<-t.test(C.42.peaks.store[,2],C.68.peaks.store[,2])
+C.69.24.T<-t.test(C.42.peaks.store[,1],C.69.peaks.store[,1])
+C.69.mono.T<-t.test(C.42.peaks.store[,2],C.69.peaks.store[,2])
+C.68and69.24.T<-t.test(C.68.peaks.store[,1],C.69.peaks.store[,1])
+C.68and69.mono.T<-t.test(C.68.peaks.store[,2],C.69.peaks.store[,2])
+
+

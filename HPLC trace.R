@@ -31,7 +31,7 @@ data<-read.csv(file=data.file,header=FALSE)
 # Input = output of HPLC.import()
 # Output = list of absorbance values for each of the three wavelengths analysed
 
-HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
+HPLC.discrete.process<- function(data,control.data,data2,wavelength,time,flow)
 
 {
 
@@ -48,13 +48,24 @@ HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
   absorbance<-absorbance[1:points[6]]
   
   # Determine number of datapoints for each discrete wavelength
+  points2<-as.numeric(array(unlist(data2[,1][16:17])))
+  points2<-c(
+    1,          points2[1],
+    points2[1]+1,            points2[1]*2,
+    points2[1]*2+1,            points2[1]*3)
+  
+    
+  # Parse wavelength data
+  absorbance2<-as.numeric(array(unlist(data2[,1][-seq(1,30,1)])))
+  absorbance2<-absorbance2[1:points2[6]]
+  
+  # Determine number of datapoints for each discrete wavelength
   control.points<-as.numeric(array(unlist(control.data[,1][16:17])))
   control.points<-c(
     1,          control.points[1],
     control.points[1]+1,            control.points[1]*2,
     control.points[1]*2+1,            control.points[1]*3)
   
-    
   # Parse wavelength data
   control.absorbance<-as.numeric(array(unlist(control.data[,1][-seq(1,30,1)])))
   control.absorbance<-control.absorbance[1:control.points[6]]
@@ -62,29 +73,14 @@ HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
     
   # Separate the three wavelengths and make them relative to highest peak.
   wavA<-absorbance[seq(points[1],points[2],1)]
-  wavB<-absorbance[seq(points[5],points[6],1)]
+  wavB<-absorbance2[seq(points2[1],points2[2],1)]
   control.wavA<-control.absorbance[seq(points[1],points[2],1)]
-  control.wavB<-control.absorbance[seq(points[5],points[6],1)]  
   
-  int.wavA<-sum(wavA)
-  int.wavB<-sum(wavB)
-  int.control.wavA<-sum(control.wavA)
-  int.control.wavB<-sum(control.wavB)
+  wav1<-wavA/max(wavA)
+  wav2<-wavB/max(wavB)
+  control.wav1<-control.wavA/max(control.wavA)
   
-  adj.wavA<-wavA/int.wavA
-  adj.wavB<-wavB/int.wavB
-  adj.control.wavA<-control.wavA/int.control.wavA
-  adj.control.wavB<-control.wavB/int.control.wavB
-  
-  max<-max(wavA,wavB,control.wavA,control.wavB)
-  adj.max<-max(adj.wavA,adj.wavB,adj.control.wavA,adj.control.wavB)
-  
-  wav1<-wavA/max
-  wav2<-wavB/max
-  control.wav1<-control.wavA/max
-  control.wav2<-control.wavB/max
-  
-	# Generate X-axis by calculating elution volume
+  # Generate X-axis by calculating elution volume
   
   # Sampling rate = 10x per second
   
@@ -104,11 +100,10 @@ HPLC.discrete.process<- function(data,control.data,wavelength,time,flow)
   
   
   # Order results into a matrix
-  col.names<-c("Volume (ml)",paste(Sample,wavelength[1],sep=": "),paste(Sample,wavelength[2],sep=": "),
-  paste(Control,wavelength[1],sep=": "),paste(Control,wavelength[2],sep=": "))
+  col.names<-c("Volume (ml)","Wildtype","F36R","L162R")
   row.names<-seq(1,length(elution),1)
   dimnames<-list(row.names,col.names)
-  data<-matrix(data=c(elution,wav1,wav2,control.wav1,control.wav2),ncol=5,dimnames=dimnames)
+  data<-matrix(data=c(elution,control.wav1,wav1,wav2),ncol=4,dimnames=dimnames)
   
   
 
@@ -148,28 +143,18 @@ write.csv(x=sample.summary,file=file.name)
 HPLC.discrete.plot1<- function(hplc.data,figure.dir,colours)
 {
   setwd(figure.dir)
-  png(file=paste(c(Sample,".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
-  plot(x=data[,1],y=data[,2],type='l',col=colours[1],xlab="Volume (ml)",ylab="Relative Absorbance (A.U)",main=Sample,lwd=2,ylim=c(-0.1,1),cex.main=3,cex.lab=1.2,cex.axis=1.2)
+  png(file="280nm SEC trace summary.png", bg="transparent", width =1000, height=500,units="px",pointsize=13)
+  plot(x=data[,1],y=data[,2],type='l',col=colours[1],xlab="Volume (ml)",ylab="Relative Absorbance (A.U) at 280nm",
+  main="SEC Traces of control and mutant GLFGs",
+  lwd=2,ylim=c(-0.1,1),cex.main=3,cex.lab=1.2,cex.axis=1.2)
   points(x=data[,1],y=data[,3],type='l',col=colours[2],lwd=2)
   points(x=data[,1],y=data[,4],type='l',col=colours[3])
-  points(x=data[,1],y=data[,5],type='l',col=colours[4])
-
-  legend(x=c(9,11),y=c(0.8,1),legend=c(figure.leg1,figure.leg2,figure.leg3,figure.leg4),col=colours,lty=1,lwd=3,cex=1.1, bty='n')
+  legend(x=c(9,11),y=c(0.8,1),legend=c("Wildtype GLFG","F36R GLFG","L162R GLFG"),col=colours,
+  lty=1,lwd=3,cex=1.1, bty='n')
   dev.off()
 }
 ############################################################
 
-
-
-# Gets values for largest 24mer and monomer peak
-max.wav1<-max(data[,2]
-max.wav2<-max(data[,3])
-max.control.wav1<-max(data[,4])
-max.control.wav2<-max(data[,5])
-monomer.wav1<-max(data[12300:length(data[,2]),2])
-monomer.wav2<-max(data[12300:length(data[,3]),3])
-monomer.control.wav1<-max(data[12300:length(data[,4]),4])
-monomer.control.wav2<-max(data[12300:length(data[,5]),5])
 
 
 # EXAMPLE
@@ -183,12 +168,13 @@ monomer.control.wav2<-max(data[12300:length(data[,5]),5])
 ################# DEFINE INPUT VARIABLES
 
 # HPLC.import
-Sample.name<-"C.68 - Small - 5nm GNPs" 
+Sample.name<-"C.68 Run 1" 
 Sample<-Sample.name
-result.type<-"spectrum"
-parent.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/2013-05-29"
+Sample2<-"C.69 Run 1"
+result.type<-"discrete"
+parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
 
-Control<-"C.68 - Small - Control"
+Control<-"C.42 Run 4"
 
 # HPLC.discrete.process
 wavelength<-c("280 nm","530 nm")
@@ -198,25 +184,13 @@ flow<-0.3
 ################# Calculate Results
 data<-HPLC.import(Sample,result.type,parent.dir)
 control.data<-HPLC.import(Control,result.type,parent.dir)
-data<-HPLC.discrete.process(data,control.data,wavelength,time,flow)
-
-figure.leg1<-paste(Sample,wavelength[1],sep=": ")
-figure.leg2<-paste(Sample,wavelength[2],sep=": ")
+data2<-HPLC.import(Sample2,result.type,parent.dir)
+data<-HPLC.discrete.process(data=data,control.data=control.data,data2<-data2,wavelength=wavelength,time=time,flow=flow)
 
 # HPLC.discrete.plot1 
-figure.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/"
+figure.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
 colours<-c(3,4,5,6)
-
-
-
-################# Calculate Results
-
-figure.leg3<-paste(Control,wavelength[1],sep=": ")
-figure.leg4<-paste(Control,wavelength[2],sep=": ")
 
 HPLC.discrete.plot1(data,figure.dir,colours)
 HPLC.discrete.summary()
 #rm(list=ls())
-
-linear.x<-data[18000:length(data[,1]),1]
-linear.y<-data[18000:length(data[,1]),5]

@@ -13,6 +13,7 @@ HPLC.import <- function (Sample,result.type,parent.dir)
 setwd(parent.dir)
 data.file<-dir()[grep(x=dir(parent.dir),pattern=result.type,ignore.case=TRUE)]
 data.file<-data.file[grep(x=data.file,pattern=Sample)]
+data.file<-data.file[grep(x=data.file,pattern=".asc")]
 
 data.file.names<-unlist(strsplit(x=data.file,split="-"))[seq(1,(3*length(data.file)),3)]
 
@@ -94,12 +95,15 @@ HPLC.spectrum.process<- function(data,wavelength,time,flow)
 HPLC.spectrum.plot1<- function(hplc.data,figure.dir,colours)
 {
   setwd(figure.dir)
-  png(file="L162R GFLG Absorbtion Spectra.png", bg="transparent", width =1000, height=500,units="px",pointsize=13)
-  plot(x=data[,1],y=data[,2],type='l',col=colours[1],xlab="Wavelength",ylab="Relative Absorbance (A.U)",main="L162R GFLG Absorbtion Spectra",lwd=2,ylim=c(-0.1,1),cex.main=3,cex.lab=1.2,cex.axis=1.2)
+  png(file="L162R GLFG Absorption Spectra.png", bg="transparent", width =1000, height=500,units="px",pointsize=13)
+  plot(x=data[,1],y=data[,2],type='l',col=colours[1],xlab="Wavelength",ylab="Relative Absorbance (A.U)",main="L162R GLFG Absorption Spectra", 
+  lwd=2,ylim=c(-0.1,1),cex.main=3,cex.lab=1.2,cex.axis=1.2)
   points(x=data[,1],y=data[,3],type='l',col=colours[2],lwd=2)
-  legend('topright',legend=c(paste(Sample,"24-mer"),paste(Sample,"Monomer")),col=colours,lty=1,lwd=3,cex=1.1, bty='n')
+  leg.lab<-c(paste(Sample,"24-mer"),paste(Sample,"Monomer"))
+  legend('topright',legend=leg.lab,col=colours,lty=1,lwd=3,cex=1.1, bty='n')
   dev.off()
 }
+
 ############################################################
 
 
@@ -117,10 +121,10 @@ HPLC.spectrum.plot1<- function(hplc.data,figure.dir,colours)
 ################# DEFINE INPUT VARIABLES
 
 # HPLC.import
-Sample.name<-"C.69 Run 4" 
+Sample.name<-"C.69 Run 1" 
 Sample<-Sample.name
 result.type<-"spectrum"
-parent.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/2013-05-23"
+parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
 
 
 flow<-0.3
@@ -130,8 +134,8 @@ data<-HPLC.import(Sample,result.type,parent.dir)
 data<-HPLC.spectrum.process(data,wavelength,time,flow)
 
 # HPLC.discrete.plot1 
-figure.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/"
-colours<-c(3,4,5,6)
+figure.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
+colours<-c(3,4)
 
 ################# Calculate Results
 

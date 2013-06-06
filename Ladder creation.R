@@ -6,6 +6,7 @@
 # Output = read in all data into R
 # Development = this will break down if >1 matching files are found... 
 
+require(calibrate)
 
 HPLC.import <- function (Sample.name,result.type,parent.dir)
 {
@@ -96,6 +97,26 @@ dimnames<-list(row.name,wavelength)
 sample.summary<-matrix(c(wav1.peak),
 ncol=1,nrow=1,dimnames=dimnames)
 }
+
+small.HPLC.discrete.summary<-function(data,void.vol)
+{
+# Peak
+x.values<-unlist(array(data[,1]))
+y.values<-unlist(array(data[,2]))
+x.values.monomer<-x.values[grep(x=(x.values>=6 & x.values<=8),pattern=TRUE)]
+y.values.monomer<-y.values[grep(x=(x.values>=6 & x.values<=8),pattern=TRUE)]
+wav1.peak<-x.values.monomer[rev(order(y.values.monomer))[1]]/void.vol
+row.name<-paste(Sample.name, "elution peak (ml)")
+dimnames<-list(row.name,wavelength)
+sample.summary<-matrix(c(wav1.peak),
+ncol=1,nrow=1,dimnames=dimnames)
+}
+
+
+
+
+
+
 ############################################################
 
 void.HPLC.discrete.summary<-function(data)
@@ -109,12 +130,19 @@ ncol=1,nrow=1,dimnames=dimnames)
 }
 
 
-HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf,tomato)
+HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf,tomato,C.68.large,C.68.small)
 {
 	prot.elutions<-c(albumin,cytochrome.c,hsf,tomato)
 	molecular.ws<-c(66,12.4,440,115)
 	plot(x=prot.elutions,y=molecular.ws,xlim=c(0,1.75),xlab="Elution volume / Void volume",
 	ylab="Molecular Weight (kDa)",main="Calculation of the molecular weight of the large and small GLFG peaks")
+	labs<-c("Albumin","Cytochrome C","Horse Spleen Ferritin","tdTomato")
+	c.lm<-array(summary(lm(molecular.ws~prot.elutions))$coefficients[,1][1])
+	m.lm<-array(summary(lm(molecular.ws~prot.elutions))$coefficients[,1][2])
+	large.mw<-m.lm*as.numeric(C.68.large)+c.lm
+	small.mw<-m.lm*as.numeric(C.68.small)+c.lm
+	points(x=c(C.68.large,C.68.small),y=c(large.mw,small.mw))
+	textxy(x=prot.elutions,y=molecular.ws,labs=labs)
 	abline(lm(molecular.ws~prot.elutions))
 }
 
@@ -167,4 +195,11 @@ data<-HPLC.import(Sample.name,result.type,parent.dir)
 data<-HPLC.discrete.process(data,wavelength,time,flow)
 tomato<-HPLC.discrete.summary(data,void.vol)
 
-HPLC.ladder.plot(albumin,cytochrome.c,hsf,tomato)
+parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
+Sample.name<-"C.68 Run 1"
+data<-HPLC.import(Sample.name,result.type,parent.dir)
+data<-HPLC.discrete.process(data,wavelength,time,flow)
+C.68.large<-HPLC.discrete.summary(data,void.vol)
+C.68.small<-small.HPLC.discrete.summary(data,void.vol)
+
+HPLC.ladder.plot(albumin,cytochrome.c,hsf,tomato,C.68.large,C.68.small)

@@ -133,14 +133,14 @@ ncol=1,nrow=1,dimnames=dimnames)
 HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf,tomato,C.68.large,C.68.small)
 {
 	prot.elutions<-c(albumin,cytochrome.c,hsf,tomato)
-	molecular.ws<-c(66,12.4,440,115)
+	molecular.ws<-c(66,12.4,443,115)
 	plot(x=prot.elutions,y=molecular.ws,xlim=c(0,1.75),xlab="Elution volume / Void volume",
-	ylab="Molecular Weight (kDa)",main="Calculation of the molecular weight of the large and small GLFG peaks")
+	ylab="Molecular Weight (kDa)",main="Calculation of the molecular weight of the large and small GLFG peaks",log='y')
 	labs<-c("Albumin","Cytochrome C","Horse Spleen Ferritin","tdTomato")
 	c.lm<-array(summary(lm(molecular.ws~prot.elutions))$coefficients[,1][1])
 	m.lm<-array(summary(lm(molecular.ws~prot.elutions))$coefficients[,1][2])
-	large.mw<-m.lm*as.numeric(C.68.large)+c.lm
-	small.mw<-m.lm*as.numeric(C.68.small)+c.lm
+	large.mw<-(m.lm*as.numeric(C.68.large))+c.lm
+	small.mw<-(m.lm*as.numeric(C.68.small))+c.lm
 	points(x=c(C.68.large,C.68.small),y=c(large.mw,small.mw))
 	textxy(x=prot.elutions,y=molecular.ws,labs=labs)
 	abline(lm(molecular.ws~prot.elutions))

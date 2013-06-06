@@ -31,7 +31,7 @@ data<-read.csv(file=data.file,header=FALSE)
 # Input = output of HPLC.import()
 # Output = list of absorbance values for each of the three wavelengths analysed
 
-HPLC.discrete.process<- function(data,wavelength,time,flow,void.vol)
+HPLC.discrete.process<- function(data,wavelength,time,flow)
 
 {
 
@@ -98,11 +98,23 @@ ncol=1,nrow=1,dimnames=dimnames)
 }
 ############################################################
 
-HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf)
+void.HPLC.discrete.summary<-function(data)
 {
-	prot.elutions<-c(albumin,cytochrome.c,hsf)
-	molecular.ws<-c(66,44,12.4)
-	plot(x=prot.elutions,y=molecular.ws,xlim=c(0,13))
+# Peak
+wav1.peak<-as.numeric(data[,1][rev(order(data[,2]))[1]])
+row.name<-paste(Sample.name, "elution peak (ml)")
+dimnames<-list(row.name,wavelength)
+sample.summary<-matrix(c(wav1.peak),
+ncol=1,nrow=1,dimnames=dimnames)
+}
+
+
+HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf,tomato)
+{
+	prot.elutions<-c(albumin,cytochrome.c,hsf,tomato)
+	molecular.ws<-c(66,12.4,440,115)
+	plot(x=prot.elutions,y=molecular.ws,xlim=c(0,1.75),xlab="Elution volume / Void volume",
+	ylab="Molecular Weight (kDa)",main="Calculation of the molecular weight of the large and small GLFG peaks")
 	abline(lm(molecular.ws~prot.elutions))
 }
 
@@ -118,11 +130,10 @@ HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf)
 ################# DEFINE INPUT VARIABLES
 
 # HPLC.import
-Sample.name<-"Albumun 16-08-17" 
+Sample.name<-"Dextran Blue 6"
 Sample<-Sample.name
 result.type<-"discrete"
-parent.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/Ladder Proteins"
-void.vol<-0.9
+parent.dir<-"//ic.ac.uk/homes/hfr10/Ladder Proteins"
 
 # HPLC.discrete.process
 wavelength<-"280 nm"
@@ -132,19 +143,28 @@ figure.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Ha
 colours<-c(3,4,5,6)
 
 ################# Calculate Results
-
 data<-HPLC.import(Sample.name,result.type,parent.dir)
-data<-HPLC.discrete.process(data,wavelength,time,flow,void.vol)
+data<-HPLC.discrete.process(data,wavelength,time,flow)
+void.vol<-void.HPLC.discrete.summary(data)
+
+Sample.name<-"Albumun 16-08-17" 
+data<-HPLC.import(Sample.name,result.type,parent.dir)
+data<-HPLC.discrete.process(data,wavelength,time,flow)
 albumin<-HPLC.discrete.summary(data,void.vol)
 
 Sample.name<-"Cytochrome C"
 data<-HPLC.import(Sample.name,result.type,parent.dir)
-data<-HPLC.discrete.process(data,wavelength,time,flow,void.vol)
+data<-HPLC.discrete.process(data,wavelength,time,flow)
 cytochrome.c<-HPLC.discrete.summary(data,void.vol)
 
 Sample.name<-"Horse Spleen Ferritin 15-16-08"
 data<-HPLC.import(Sample.name,result.type,parent.dir)
-data<-HPLC.discrete.process(data,wavelength,time,flow,void.vol)
+data<-HPLC.discrete.process(data,wavelength,time,flow)
 hsf<-HPLC.discrete.summary(data,void.vol)
 
-HPLC.ladder.plot(albumin,cytochrome.c,hsf)
+Sample.name<-"C.62 Tomato Ladder"
+data<-HPLC.import(Sample.name,result.type,parent.dir)
+data<-HPLC.discrete.process(data,wavelength,time,flow)
+tomato<-HPLC.discrete.summary(data,void.vol)
+
+HPLC.ladder.plot(albumin,cytochrome.c,hsf,tomato)

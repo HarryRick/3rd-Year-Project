@@ -133,17 +133,20 @@ ncol=1,nrow=1,dimnames=dimnames)
 HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf,tomato,C.68.large,C.68.small)
 {
 	prot.elutions<-c(albumin,cytochrome.c,hsf,tomato)
-	molecular.ws<-c(66,12.4,443,115)
+	molecular.ws<-c(66,12.4,443,56.3)
+	png(file="Ladder linear.png", bg="transparent",
+	width =1000, height=500,units="px",pointsize=13)
+
 	plot(x=prot.elutions,y=molecular.ws,xlim=c(0,1.75),xlab="Elution volume / Void volume",
-	ylab="Molecular Weight (kDa)",main="Calculation of the molecular weight of the large and small GLFG peaks",log='y')
+	ylab="Molecular Weight (kDa)",main="Calculation of the molecular weight of the large and small GLFG peaks",log="y")
 	labs<-c("Albumin","Cytochrome C","Horse Spleen Ferritin","tdTomato")
 	c.lm<-array(summary(lm(molecular.ws~prot.elutions))$coefficients[,1][1])
 	m.lm<-array(summary(lm(molecular.ws~prot.elutions))$coefficients[,1][2])
 	large.mw<-(m.lm*as.numeric(C.68.large))+c.lm
 	small.mw<-(m.lm*as.numeric(C.68.small))+c.lm
-	points(x=c(C.68.large,C.68.small),y=c(large.mw,small.mw))
-	textxy(x=prot.elutions,y=molecular.ws,labs=labs)
+	points(x=c(C.68.large,C.68.small),y=c(large.mw,small.mw),col="blue")
 	abline(lm(molecular.ws~prot.elutions))
+	dev.off()
 }
 
 
@@ -161,7 +164,7 @@ HPLC.ladder.plot<-function(albumin,cytochrome.c,hsf,tomato,C.68.large,C.68.small
 Sample.name<-"Dextran Blue 6"
 Sample<-Sample.name
 result.type<-"discrete"
-parent.dir<-"//ic.ac.uk/homes/hfr10/Ladder Proteins"
+parent.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/Ladder Proteins"
 
 # HPLC.discrete.process
 wavelength<-"280 nm"
@@ -195,7 +198,7 @@ data<-HPLC.import(Sample.name,result.type,parent.dir)
 data<-HPLC.discrete.process(data,wavelength,time,flow)
 tomato<-HPLC.discrete.summary(data,void.vol)
 
-parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
+parent.dir<-"/Users/harryrick/Dropbox/Work/Imperial/3rd Year/Nanocage Project/Harry/Data/2013-05-23"
 Sample.name<-"C.68 Run 1"
 data<-HPLC.import(Sample.name,result.type,parent.dir)
 data<-HPLC.discrete.process(data,wavelength,time,flow)

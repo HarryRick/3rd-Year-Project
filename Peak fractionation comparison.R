@@ -106,19 +106,20 @@ HPLC.discrete.get.peaks<-function(data,Sample,sample.file.names,Real.sample.name
 x.values<-unlist(array(data[,1]))
 y.values<-unlist(array(data[,2]))
 
-is.frac<-grepl(x=sample.file.names,pattern=peak.size)
-if(is.frac==FALSE)
+is.frac<-unique(grep(x=sample.file.names,pattern="Large",value=TRUE))
+if(length(is.frac)>0)
 {
-	png(file=paste(c(Sample, " native state"".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+	png(file=paste(c(Sample, " native state.png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
 	plot(x=x.values,y=y.values,type='l',col=2,ylab="Relative Absorbance at 497nm",xlab="Elution volume (mL)",
-	main=paste("Normalised absorption of",Real.sample.name,"with baseline adjustment")
+	main=paste("Normalised absorption of",Real.sample.name," GLFG in its native state with baseline adjustment"))
 
 }
 else
 {
-	png(file=paste0(Sample," small fraction".png), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+	png(file=paste0(Sample," small fraction.png"), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+	plot(x=x.values,y=y.values,type='l',col=2,ylab="Relative Absorbance at 497nm",xlab="Elution volume (mL)",
+	main=paste("Normalised absorption of",Real.sample.name," GLFG in its fractionated state with baseline adjustment"))
 }
-plot(x=x.values,y=y.values,type='l',col=2)
 
 largemer.baseline.x.val<-x.values[grep(x=x.values<=4,pattern=TRUE)]
 largemer.baseline.y.val<-y.values[grep(x=x.values<=4,pattern=TRUE)]
@@ -197,25 +198,22 @@ normalised.peaks<-c(percent.24mer,percent.monomer)
 # HPLC.import
 dir<-dir("//ic.ac.uk/homes/hfr10/2013-05-23")
 
-
-
-
-dimnames<-list(rownames,colnames)
-barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimnames)
-Sample.name<-"C.42" 
+Sample.name<-"C.69" 
 
 if(Sample.name=="C.42")
 {	
 	Real.sample.name<-"wildtype"
+} else { 
+	if(Sample.name=="C.68")
+	{
+		Real.sample.name<-"F36R"
+	}
+	else {
+			Real.sample.name<-"L162R"
+	}
 }
-else if(Sample.name=="C.68")
-{
-	Real.sample.name<-"F36R"
-}
-else 
-{
-	Real.sample.name<-"L162R"
-}
+
+
 
 result.type<-"discrete"
 parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
@@ -252,7 +250,7 @@ while(i<=max(sample.numbers))
 	Sample<-paste(Sample.name,"Run",sample.numbers[i],sep=" ")
 	data<-HPLC.import(Sample,result.type,parent.dir)
 	data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
-	normalised.peaks<-HPLC.discrete.get.peaks(data,Sample,Real.sample.name)
+	normalised.peaks<-HPLC.discrete.get.peaks(data,Sample,sample.file.names,Real.sample.name)
 	peaks.store[i,]<-normalised.peaks
 	print(normalised.peaks)
 	if(Sample.name=="C.42")
@@ -272,7 +270,7 @@ while(i<=max(sample.numbers))
 
 parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-29"
 
-sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir,value=TRUE)
+sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir(parent.dir),value=TRUE)
 sample.file.names<-grep("discrete",sample.file.names,value=TRUE)
 
 # Creates matrix which will contain peak data.
@@ -286,7 +284,7 @@ i<-1
 ################# Calculate Results
 data<-frac.HPLC.import(Sample.name,result.type,parent.dir,peak.size,treatment)
 data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
-normalised.peaks<-HPLC.discrete.get.peaks(data,Sample)
+normalised.peaks<-HPLC.discrete.get.peaks(data,Sample,sample.file.names,Real.sample.name)
 peaks.store[i,]<-normalised.peaks
 print(normalised.peaks)
 if(Sample.name=="C.42")
@@ -306,15 +304,21 @@ C.42.monomer.mean<-mean(C.42.peaks.store[,2])
 C.68.monomer.mean<-mean(C.68.peaks.store[,2])
 C.69.monomer.mean<-mean(C.69.peaks.store[,2])
 
+frac.C.42.monomer<-mean(frac.C.42.peaks.store[,2])
+frac.C.68.monomer<-mean(frac.C.68.peaks.store[,2])
+frac.C.69.monomer<-mean(frac.C.69.peaks.store[,2])
+
 barplot.data<-c(C.42.monomer.mean,frac.C.42.monomer,C.68.monomer.mean,
 frac.C.68.monomer, C.69.monomer.mean, frac.C.69.monomer)
 
 colnames<-c("Wildtype GLFG","F36R GLFG","L162R GLFG")
-rownames<-c("Native state monomer percentage absorption","fractionated monomer percentage absorption")
+rownames<-c("Native state monomer","Fractionated monomer")
+dimnames<-list(rownames,colnames)
+barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimnames)
 
 png(file=paste(c("Barchart Non-fractionated vs fractionated monomers.png"),
 collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
-barplot<-barplot(height=barplot.data.matrix,main="Effect fractionation on the percentage of monomer present",
+barplot<-barplot(height=barplot.data.matrix,main="The effect of fractionation on the percentage of monomer present",
 beside=TRUE,space=c(0,1),col=c("springgreen","steelblue"),
 legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120),axis.lty=1)
 dev.off()

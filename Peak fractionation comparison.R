@@ -8,15 +8,6 @@ require(plotrix)
 # Output = read in all data into R
 # Development = this will break down if >1 matching files are found...
 
-error.bar <- function(x, y, upper, lower=upper, length=0.1,...)
-{
-	if(length(x) != length(y) | length(y) !=length(lower) | length(lower) != length(upper))
-	stop("vectors must be same length")
-	arrows(x,y+upper, x, y-lower, angle=90, code=3, length=length, ...)
-}
-
-
-
 
 HPLC.import <- function (Sample,result.type,parent.dir)
 {
@@ -28,6 +19,20 @@ HPLC.import <- function (Sample,result.type,parent.dir)
 	# Read data into R
 	data<-read.csv(file=data.file,header=FALSE)
 }
+
+frac.HPLC.import <- function (Sample.name,result.type,parent.dir,peak.size,treatment)
+{
+# Navigate to data
+	setwd(parent.dir)
+	data.file<-grep(pattern=Sample.name,dir(parent.dir),value=TRUE)
+	data.file<-grep(peak.size,data.file,value=TRUE)
+	data.file<-grep(result.type,data.file,value=TRUE)
+	data.file<-grep(treatment,data.file,value=TRUE)
+
+	# Read data into R
+	data<-read.csv(file=data.file,header=FALSE)
+}
+
 
 
 ############################################################
@@ -56,8 +61,11 @@ HPLC.discrete.process<- function(data,wavelength,time,flow)
   
 
   # Separate the three wavelengths and make them relative to highest peak.
-  wavA<-absorbance[seq(points[1],points[2],1)]
-  
+  if(wavelength=="280nm")
+  {wavA<-absorbance[seq(points[1],points[2],1)]}
+  if(wavelength=="497nm")
+  {wavA<-absorbance[seq(points[3],points[4],1)]}
+
   wav1<-wavA/max(wavA)
   
 # Generate X-axis by calculating elution volume
@@ -92,14 +100,24 @@ HPLC.discrete.process<- function(data,wavelength,time,flow)
 
 
 
-HPLC.discrete.get.peaks<-function(data,Sample)
+HPLC.discrete.get.peaks<-function(data,Sample,sample.file.names,Real.sample.name)
 {
 # Fits linear model to baseline of 24mer and monomer
 x.values<-unlist(array(data[,1]))
 y.values<-unlist(array(data[,2]))
 
-png(file=paste(c(Sample,".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+is.frac<-grepl(x=sample.file.names,pattern=peak.size)
+if(is.frac==FALSE)
+{
+	png(file=paste(c(Sample, " native state"".png"),collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+	plot(x=x.values,y=y.values,type='l',col=2,ylab="Relative Absorbance at 497nm",xlab="Elution volume (mL)",
+	main=paste("Normalised absorption of",Real.sample.name,"with baseline adjustment")
 
+}
+else
+{
+	png(file=paste0(Sample," small fraction".png), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+}
 plot(x=x.values,y=y.values,type='l',col=2)
 
 largemer.baseline.x.val<-x.values[grep(x=x.values<=4,pattern=TRUE)]
@@ -178,13 +196,35 @@ normalised.peaks<-c(percent.24mer,percent.monomer)
 
 # HPLC.import
 dir<-dir("//ic.ac.uk/homes/hfr10/2013-05-23")
+
+
+
+
+dimnames<-list(rownames,colnames)
+barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimnames)
 Sample.name<-"C.42" 
+
+if(Sample.name=="C.42")
+{	
+	Real.sample.name<-"wildtype"
+}
+else if(Sample.name=="C.68")
+{
+	Real.sample.name<-"F36R"
+}
+else 
+{
+	Real.sample.name<-"L162R"
+}
+
 result.type<-"discrete"
 parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-23"
 figure.dir<-"//ic.ac.uk/homes/hfr10/"
-wavelength<-c("280 nm")
+wavelength<-"497nm"
 time<-45
 flow<-0.3
+peak.size<-"Small"
+treatment<-"Control"
 
 #Extracts the repeat numbers from the directory 
 sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir,value=TRUE)
@@ -212,7 +252,7 @@ while(i<=max(sample.numbers))
 	Sample<-paste(Sample.name,"Run",sample.numbers[i],sep=" ")
 	data<-HPLC.import(Sample,result.type,parent.dir)
 	data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
-	normalised.peaks<-HPLC.discrete.get.peaks(data,Sample)
+	normalised.peaks<-HPLC.discrete.get.peaks(data,Sample,Real.sample.name)
 	peaks.store[i,]<-normalised.peaks
 	print(normalised.peaks)
 	if(Sample.name=="C.42")
@@ -229,47 +269,52 @@ while(i<=max(sample.numbers))
 	}
 	i<-i+1
 }
-write.csv(x=peaks.store,file=paste(Sample.name,"peak percentages.csv"))
 
-C.42.24mer.mean<-mean(C.42.peaks.store[,1])
+parent.dir<-"//ic.ac.uk/homes/hfr10/2013-05-29"
+
+sample.file.names<-grep(paste(Sample.name," Run ",sep=""),dir,value=TRUE)
+sample.file.names<-grep("discrete",sample.file.names,value=TRUE)
+
+# Creates matrix which will contain peak data.
+colnames<-c(paste("Fractionated", Sample.name, "24mer % absorbance"),paste("Fractionated",Sample.name,
+"Monomer % Abosrbance"))
+rownames<-"1"
+dimnames<-list(rownames,colnames)
+peaks.store<-matrix(ncol=2,nrow=1,dimnames=dimnames)
+i<-1
+# HPLC.discrete.process
+################# Calculate Results
+data<-frac.HPLC.import(Sample.name,result.type,parent.dir,peak.size,treatment)
+data<-HPLC.discrete.process(data=data,wavelength=wavelength,time=time,flow=flow)
+normalised.peaks<-HPLC.discrete.get.peaks(data,Sample)
+peaks.store[i,]<-normalised.peaks
+print(normalised.peaks)
+if(Sample.name=="C.42")
+{
+	frac.C.42.peaks.store<-peaks.store
+}
+if(Sample.name=="C.68")
+{
+	frac.C.68.peaks.store<-peaks.store
+}
+if(Sample.name=="C.69")
+{
+	frac.C.69.peaks.store<-peaks.store
+}
+
 C.42.monomer.mean<-mean(C.42.peaks.store[,2])
 C.68.monomer.mean<-mean(C.68.peaks.store[,2])
-C.68.24mer.mean<-mean(C.68.peaks.store[,1])
-C.69.24mer.mean<-mean(C.69.peaks.store[,1])
 C.69.monomer.mean<-mean(C.69.peaks.store[,2])
 
-C.42.24mer.std.error<-std.error(C.42.peaks.store[,1])
-C.42.monomer.std.error<-std.error(C.42.peaks.store[,2])
-C.68.monomer.std.error<-std.error(C.68.peaks.store[,2])
-C.68.24mer.std.error<-std.error(C.68.peaks.store[,1])
-C.69.24mer.std.error<-std.error(C.69.peaks.store[,1])
-C.69.monomer.std.error<-std.error(C.69.peaks.store[,2])
-
-barplot.data<-c(C.42.24mer.mean, C.42.monomer.mean,C.68.24mer.mean,C.68.monomer.mean,
-C.69.24mer.mean, C.69.monomer.mean)
-error.bar.data<-c(C.42.24mer.std.error, C.42.monomer.std.error,C.68.24mer.std.error,C.68.monomer.std.error,
-C.69.24mer.std.error, C.69.monomer.std.error)
+barplot.data<-c(C.42.monomer.mean,frac.C.42.monomer,C.68.monomer.mean,
+frac.C.68.monomer, C.69.monomer.mean, frac.C.69.monomer)
 
 colnames<-c("Wildtype GLFG","F36R GLFG","L162R GLFG")
-rownames<-c("24mer percentage absorption","Monomer percentage absorption")
-rownames.error<-c("24mer percentage absorption std error","Monomer percentage absorption std error")
+rownames<-c("Native state monomer percentage absorption","fractionated monomer percentage absorption")
 
-dimnames<-list(rownames,colnames)
-dimnames.error<-list(rownames.error,colnames)
-barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimnames)
-error.bar.data.matrix<-matrix(ncol=3,nrow=2,error.bar.data,byrow=FALSE,dimnames=dimnames.error)
-
-png(file=paste(c("Barchart of Percentage aborbance values.png"),
+png(file=paste(c("Barchart Non-fractionated vs fractionated monomers.png"),
 collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
-barplot<-barplot(height=barplot.data.matrix,main="Effect of mutants on the ratio of 24mer to monomer",
-beside=TRUE,space=c(0,1),col=c("palegreen","darkred"),
+barplot<-barplot(height=barplot.data.matrix,main="Effect fractionation on the percentage of monomer present",
+beside=TRUE,space=c(0,1),col=c("springgreen","steelblue"),
 legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120),axis.lty=1)
-error.bar(barplot,barplot.data,error.bar.data)
 dev.off()
-
-C.68.24.T<-t.test(C.42.peaks.store[,1],C.68.peaks.store[,1])
-C.68.mono.T<-t.test(C.42.peaks.store[,2],C.68.peaks.store[,2])
-C.69.24.T<-t.test(C.42.peaks.store[,1],C.69.peaks.store[,1])
-C.69.mono.T<-t.test(C.42.peaks.store[,2],C.69.peaks.store[,2])
-C.68and69.24.T<-t.test(C.68.peaks.store[,1],C.69.peaks.store[,1])
-C.68and69.mono.T<-t.test(C.68.peaks.store[,2],C.69.peaks.store[,2])

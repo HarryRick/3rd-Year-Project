@@ -260,7 +260,7 @@ barplot.data.matrix<-matrix(ncol=3,nrow=2,barplot.data,byrow=FALSE,dimnames=dimn
 error.bar.data.matrix<-matrix(ncol=3,nrow=2,error.bar.data,byrow=FALSE,dimnames=dimnames.error)
 
 png(file=paste(c("Barchart of Percentage aborbance values.png"),
-collapse=""), bg="transparent", width =1000, height=500,units="px",pointsize=13)
+collapse=""), bg="transparent", width =700, height=750,units="px",pointsize=13)
 barplot<-barplot(height=barplot.data.matrix,main="Effect of mutants on the ratio of 24mer to monomer",
 beside=TRUE,space=c(0,1),col=c("palegreen","darkred"),
 legend.text=TRUE,ylab="Percentage absorbance",ylim=c(0,120),axis.lty=1)
